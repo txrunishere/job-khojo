@@ -5,7 +5,7 @@ const supabaseUrl = config.SUPABASE_URL;
 const supabaseKey = config.SUPABASE_ANON_KEY;
 
 const supabaseClient = async (token) => {
-  const supabase = createClient(supabaseUrl, supabaseKey, {
+  const supabase = await createClient(supabaseUrl, supabaseKey, {
     global: {
       headers: {
         Authorization: `Bearer ${token}`,
