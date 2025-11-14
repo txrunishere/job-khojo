@@ -13,13 +13,19 @@ import {
 } from "@/components/ui/select";
 import config from "@/config";
 import { BarLoader } from "react-spinners";
-import { useFetch } from "@/hooks";
+import { useFetch, useSupabase } from "@/hooks";
+import { getAllCompanies } from "@/api/company.api";
+import { useEffect } from "react";
+import { useSession, useUser } from "@clerk/clerk-react";
 
 export const PostJob = () => {
   const handleAddJob = (e) => {
     e.preventDefault();
+    e.stopPropagation();
     console.log("Job Added");
   };
+
+  const { isLoaded } = useUser();
 
   const {
     data: statesData,
@@ -31,7 +37,14 @@ export const PostJob = () => {
     },
   });
 
-  if (statesLoading) {
+  const { data: companyList, fn: fetchCompanyDataFn } =
+    useSupabase(getAllCompanies);
+
+  useEffect(() => {
+    fetchCompanyDataFn();
+  }, [isLoaded]);
+
+  if (statesLoading && !isLoaded) {
     return (
       <div className="px-3">
         <BarLoader width={"100%"} color="white" />
@@ -80,7 +93,12 @@ export const PostJob = () => {
                 <SelectContent>
                   <SelectGroup>
                     <SelectLabel>Companies</SelectLabel>
-                    <SelectItem value={"infosis"}>Infosis</SelectItem>
+                    {companyList &&
+                      companyList.map((company) => (
+                        <SelectItem key={company.id} value={company.name}>
+                          {company.name}
+                        </SelectItem>
+                      ))}
                   </SelectGroup>
                 </SelectContent>
               </Select>
