@@ -1,10 +1,54 @@
 import { z } from "zod";
 
-const jobInputSchema = z.object({
-  title: z.string().min(1, "Job title is required"),
-  description: z.string().min(1, "Job Description is required!!").max(100),
-  location: z.string().min(1, "Location is required"),
-  company: z.string().min(1, "Company is required"),
-});
+export const jobInputSchema = z
+  .object({
+    title: z.string().trim().min(3, "Job title must be at least 3 characters"),
 
-export { jobInputSchema };
+    description: z
+      .string()
+      .trim()
+      .min(20, "Description must be at least 20 characters")
+      .max(5000, "Description cannot exceed 5000 characters"),
+
+    location: z.string().trim().min(2, "Location is required"),
+
+    company: z.string().trim().min(2, "Company name is required"),
+
+    employment_type: z.enum(
+      ["full-time", "part-time", "contract", "internship", "remote"],
+      { error: "Choose a type for job" },
+    ),
+
+    experience: z.coerce
+      .number()
+      .min(0, "Experience cannot be negative")
+      .max(30, "Experience cannot exceed 30 years"),
+
+    salary_start: z.coerce
+      .number()
+      .min(0, "Salary start cannot be negative")
+      .max(5000000, "Salary cannot exceed 50 LPA"),
+    salary_end: z.coerce
+      .number()
+      .min(0, "Salary end cannot be negative")
+      .max(5000000, "Salary cannot exceed 50 LPA"),
+
+    isOpen: z.boolean(),
+
+    skills: z
+      .string()
+      .trim()
+      .transform((val) =>
+        val
+          .split(",")
+          .map((s) => s.trim())
+          .filter((s) => s !== ""),
+      )
+      .refine((arr) => arr.length > 0, {
+        message: "At least one skill is required",
+      }),
+  })
+  .refine((data) => data.salary_end >= data.salary_start, {
+    message: "Salary end must be greater than or equal to salary start",
+    path: ["salary_end"],
+  });
