@@ -17,7 +17,7 @@ const createCompany = async (token, companyData) => {
 
   if (uploadError) {
     console.log("Supabase Error :: Uploading company logo :: ", uploadError);
-    return uploadData;
+    throw new Error();
   }
 
   const { data: publicUrlData } = supabase.storage
@@ -50,7 +50,7 @@ const createCompany = async (token, companyData) => {
       );
     }
 
-    return insertError;
+    throw new Error(insertError.message);
   }
 
   return data;

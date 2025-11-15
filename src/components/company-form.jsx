@@ -22,15 +22,17 @@ import {
 } from "@/components/ui/select";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { companyInputSchema } from "@/schemas/company.schema";
+import { companyInputSchema } from "@/schemas";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "@clerk/clerk-react";
 import { handleAddCompanySupabase } from "@/shared/api/api";
 import { useState } from "react";
 import { toast } from "sonner";
 
-export const CompantForm = ({ states = [] }) => {
+export const CompanyForm = ({ states = [] }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [companyFormSubmitLoading, setCompanyFormSubmitLoading] =
+    useState(false);
   const { session } = useSession();
   const queryClient = useQueryClient();
 
@@ -52,27 +54,32 @@ export const CompantForm = ({ states = [] }) => {
 
   const handleAddCompany = useMutation({
     mutationFn: async (data) => {
+      setCompanyFormSubmitLoading(true);
       const fileName = Date.now() + "-" + data.logo.name;
 
       if (!data.logo) {
         throw new Error("Please upload a company logo!!");
       }
 
-      return await handleAddCompanySupabase(session, {
+      const res = await handleAddCompanySupabase(session, {
         name: data.name,
         location: data.location,
         website_url: data.website_url,
         fileName,
         file: data.logo,
       });
+
+      return res;
     },
     onSuccess: () => {
       queryClient.invalidateQueries(["companies"]);
       toast.success("The company was successfully added!");
       setIsOpen(false);
+      setCompanyFormSubmitLoading(false);
     },
     onError: (err) => {
       toast.error(err.message);
+      setCompanyFormSubmitLoading(false);
     },
   });
 
@@ -152,6 +159,7 @@ export const CompantForm = ({ states = [] }) => {
             </div>
             <div className="">
               <InputField>
+                <Label>Location</Label>
                 <Select defaultValue="" onValueChange={handleStateInputChange}>
                   <SelectTrigger className={"w-full"}>
                     <SelectValue placeholder="Select a Location" />
@@ -176,13 +184,13 @@ export const CompantForm = ({ states = [] }) => {
             </div>
             <div>
               <Button
-                disabled={handleAddCompany.isLoading}
+                disabled={companyFormSubmitLoading}
                 className={"w-full"}
                 onClick={handleSubmit((formData) =>
                   handleAddCompany.mutate(formData),
                 )}
               >
-                Submit
+                {companyFormSubmitLoading ? "Submitting..." : "Submit"}
               </Button>
             </div>
           </div>

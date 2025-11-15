@@ -4,7 +4,8 @@ import { Header } from "./header";
 import { Heading } from "./heading";
 import { JobSearchFilter } from "./job-search-filter";
 import { InputField } from "./input-field";
-import { CompantForm } from "./company-form";
+import { CompanyForm } from "./company-form";
+import { PostForm } from "./post-form/post-form";
 
 export {
   ModeToggle,
@@ -12,6 +13,7 @@ export {
   Header,
   Heading,
   JobSearchFilter,
-  CompantForm,
+  CompanyForm,
   InputField,
+  PostForm,
 };
