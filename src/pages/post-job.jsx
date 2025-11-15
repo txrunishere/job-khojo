@@ -11,40 +11,31 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import config from "@/config";
 import { BarLoader } from "react-spinners";
-import { useFetch, useSupabase } from "@/hooks";
-import { getAllCompanies } from "@/api/company.api";
-import { useEffect } from "react";
-import { useSession, useUser } from "@clerk/clerk-react";
+import { useSession } from "@clerk/clerk-react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchStates, getCompanies } from "./shared/api/api";
 
 export const PostJob = () => {
+  const { isLoaded, session } = useSession();
+
+  const { data: statesData, isLoading: statesLoading } = useQuery({
+    queryKey: ["states"],
+    queryFn: () => fetchStates(),
+  });
+
+  const { data: companyList, isLoading: companyLoading } = useQuery({
+    queryKey: ["companies"],
+    queryFn: async () => await getCompanies(session),
+  });
+
   const handleAddJob = (e) => {
     e.preventDefault();
     e.stopPropagation();
     console.log("Job Added");
   };
 
-  const { isLoaded } = useUser();
-
-  const {
-    data: statesData,
-    loading: statesLoading,
-    error: statesError,
-  } = useFetch("https://api.countrystatecity.in/v1/countries/IN/states", {
-    headers: {
-      "X-CSCAPI-KEY": config.STATES_API_KEY,
-    },
-  });
-
-  const { data: companyList, fn: fetchCompanyDataFn } =
-    useSupabase(getAllCompanies);
-
-  useEffect(() => {
-    fetchCompanyDataFn();
-  }, [isLoaded]);
-
-  if (statesLoading && !isLoaded) {
+  if (statesLoading && !isLoaded && companyList) {
     return (
       <div className="px-3">
         <BarLoader width={"100%"} color="white" />
@@ -93,12 +84,11 @@ export const PostJob = () => {
                 <SelectContent>
                   <SelectGroup>
                     <SelectLabel>Companies</SelectLabel>
-                    {companyList &&
-                      companyList.map((company) => (
-                        <SelectItem key={company.id} value={company.name}>
-                          {company.name}
-                        </SelectItem>
-                      ))}
+                    {companyList?.map((company) => (
+                      <SelectItem key={company.id} value={company.name}>
+                        {company.name}
+                      </SelectItem>
+                    ))}
                   </SelectGroup>
                 </SelectContent>
               </Select>
