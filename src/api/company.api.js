@@ -1,5 +1,4 @@
 import supabaseClient from "@/utils/supabase";
-import { toast } from "sonner";
 
 /**
  * companyData ->
@@ -18,8 +17,7 @@ const createCompany = async (token, companyData) => {
 
   if (uploadError) {
     console.log("Supabase Error :: Uploading company logo :: ", uploadError);
-    toast.error(uploadError.message);
-    return null;
+    return uploadData;
   }
 
   const { data: publicUrlData } = supabase.storage
@@ -40,7 +38,6 @@ const createCompany = async (token, companyData) => {
 
   if (insertError) {
     console.log("Supabase Error :: Inserting company :: ", insertError);
-    toast.error(insertError.message);
 
     const { error: deleteError } = await supabase.storage
       .from("company-logo")
@@ -51,13 +48,11 @@ const createCompany = async (token, companyData) => {
         "Supabase Error :: Deleting company logo after insert fail :: ",
         deleteError,
       );
-      toast.error(deleteError.message);
     }
 
-    return null;
+    return insertError;
   }
 
-  toast.success("Company registered successfully!!");
   return data;
 };
 

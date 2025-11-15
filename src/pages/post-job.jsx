@@ -14,7 +14,7 @@ import {
 import { BarLoader } from "react-spinners";
 import { useSession } from "@clerk/clerk-react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchStates, getCompanies } from "./shared/api/api";
+import { fetchStates, getCompanies } from "@/shared/api/api";
 
 export const PostJob = () => {
   const { isLoaded, session } = useSession();
@@ -35,7 +35,7 @@ export const PostJob = () => {
     console.log("Job Added");
   };
 
-  if (statesLoading && !isLoaded && companyList) {
+  if (statesLoading && !isLoaded && companyLoading) {
     return (
       <div className="px-3">
         <BarLoader width={"100%"} color="white" />
@@ -83,7 +83,11 @@ export const PostJob = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    <SelectLabel>Companies</SelectLabel>
+                    <SelectLabel>
+                      {companyList?.length > 0
+                        ? "Companies"
+                        : "Companies Not Found!!"}
+                    </SelectLabel>
                     {companyList?.map((company) => (
                       <SelectItem key={company.id} value={company.name}>
                         {company.name}

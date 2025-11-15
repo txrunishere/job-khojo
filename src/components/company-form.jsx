@@ -20,13 +20,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useSupabase } from "@/hooks";
-import { createCompany } from "@/api/company.api";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { companyInputSchema } from "@/schemas/company.schema";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSession } from "@clerk/clerk-react";
+import { handleAddCompanySupabase } from "@/shared/api/api";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export const CompantForm = ({ states = [] }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const { session } = useSession();
+  const queryClient = useQueryClient();
+
   const {
     register,
     handleSubmit,
@@ -36,30 +43,38 @@ export const CompantForm = ({ states = [] }) => {
     resolver: zodResolver(companyInputSchema),
     defaultValues: {
       location: "",
-      logo: "",
+      logo: null,
       name: "",
       website_url: "",
     },
     mode: "onSubmit",
   });
-  const { fn: createCompanySupabaseFn, loading: createCompanyLoading } =
-    useSupabase(createCompany);
 
-  const handleAddCompany = async (data) => {
-    try {
-      const fileName = Date.now() + data.logo.name;
-      const res = await createCompanySupabaseFn({
+  const handleAddCompany = useMutation({
+    mutationFn: async (data) => {
+      const fileName = Date.now() + "-" + data.logo.name;
+
+      if (!data.logo) {
+        throw new Error("Please upload a company logo!!");
+      }
+
+      return await handleAddCompanySupabase(session, {
         name: data.name,
         location: data.location,
         website_url: data.website_url,
         fileName,
         file: data.logo,
       });
-      console.log(res);
-    } catch (error) {
-      console.log(error);
-    }
-  };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(["companies"]);
+      toast.success("The company was successfully added!");
+      setIsOpen(false);
+    },
+    onError: (err) => {
+      toast.error(err.message);
+    },
+  });
 
   const handleFileUploadInputChange = (e) => {
     if (e.target?.files[0]) {
@@ -69,14 +84,19 @@ export const CompantForm = ({ states = [] }) => {
     }
   };
 
-  const handleStateInputChange = (value) => {
+  const handleStateInputChange = (value) =>
     setValue("location", value, { shouldValidate: true });
+
+  const handleIsOpenDrawer = () => {
+    setIsOpen(true);
   };
 
   return (
-    <Drawer>
+    <Drawer open={isOpen} onOpenChange={setIsOpen}>
       <DrawerTrigger asChild>
-        <Button variant="outline">Add Company</Button>
+        <Button variant="outline" onClick={handleIsOpenDrawer}>
+          Add Company
+        </Button>
       </DrawerTrigger>
       <DrawerContent>
         <div className={"mx-auto max-w-4xl"}>
@@ -132,7 +152,7 @@ export const CompantForm = ({ states = [] }) => {
             </div>
             <div className="">
               <InputField>
-                <Select onValueChange={handleStateInputChange}>
+                <Select defaultValue="" onValueChange={handleStateInputChange}>
                   <SelectTrigger className={"w-full"}>
                     <SelectValue placeholder="Select a Location" />
                   </SelectTrigger>
@@ -156,10 +176,11 @@ export const CompantForm = ({ states = [] }) => {
             </div>
             <div>
               <Button
-                disabled={createCompanyLoading}
+                disabled={handleAddCompany.isLoading}
                 className={"w-full"}
-                onClick={handleSubmit(handleAddCompany)}
-                type={"submit"}
+                onClick={handleSubmit((formData) =>
+                  handleAddCompany.mutate(formData),
+                )}
               >
                 Submit
               </Button>
