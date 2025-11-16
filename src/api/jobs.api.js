@@ -7,9 +7,10 @@ const getAllJobs = async (token) => {
 
   if (error) {
     console.log("Supabase Error :: While Fetching Jobs :: Error", error);
-    return null;
+    throw new Error(error.message);
   }
 
+  console.log({ data });
   return data;
 };
 
