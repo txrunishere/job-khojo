@@ -1,4 +1,5 @@
 import { createCompany, getAllCompanies } from "@/api/company.api";
+import { insertJobSupabase } from "@/api/jobs.api";
 import axios from "axios";
 import config from "@/config";
 
@@ -33,4 +34,14 @@ const handleAddCompanySupabase = async (session, companyData) => {
   return res;
 };
 
-export { getCompanies, fetchStates, handleAddCompanySupabase };
+const insertJob = async (session, jobData) => {
+  const supabaseAccessToken = await session.getToken({
+    template: "supabase",
+  });
+
+  const res = await insertJobSupabase(supabaseAccessToken, jobData);
+
+  return res;
+};
+
+export { getCompanies, fetchStates, handleAddCompanySupabase, insertJob };

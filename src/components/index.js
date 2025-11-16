@@ -5,7 +5,7 @@ import { Heading } from "./heading";
 import { JobSearchFilter } from "./job-search-filter";
 import { InputField } from "./input-field";
 import { CompanyForm } from "./company-form";
-import { PostForm } from "./post-form/post-form";
+import { PostJobForm } from "./post-form/post-job-form";
 
 export {
   ModeToggle,
@@ -15,5 +15,5 @@ export {
   JobSearchFilter,
   CompanyForm,
   InputField,
-  PostForm,
+  PostJobForm,
 };

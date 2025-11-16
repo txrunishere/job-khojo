@@ -1,4 +1,4 @@
-import { Heading, PostForm } from "@/components";
+import { Heading, PostJobForm } from "@/components";
 
 export const PostJob = () => {
   return (
@@ -7,7 +7,7 @@ export const PostJob = () => {
         <Heading>Post a Job</Heading>
       </section>
       <main>
-        <PostForm />
+        <PostJobForm />
       </main>
     </div>
   );

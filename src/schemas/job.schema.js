@@ -15,7 +15,7 @@ export const jobInputSchema = z
     company: z.string().trim().min(2, "Company name is required"),
 
     employment_type: z.enum(
-      ["full-time", "part-time", "contract", "internship", "remote"],
+      ["Full Time", "Part Time", "Contract", "Internship", "Remote"],
       { error: "Choose a type for job" },
     ),
 
@@ -35,18 +35,9 @@ export const jobInputSchema = z
 
     isOpen: z.boolean(),
 
-    skills: z
+    requirements: z
       .string()
-      .trim()
-      .transform((val) =>
-        val
-          .split(",")
-          .map((s) => s.trim())
-          .filter((s) => s !== ""),
-      )
-      .refine((arr) => arr.length > 0, {
-        message: "At least one skill is required",
-      }),
+      .min(5, "Requirements must be at least 5 characters"),
   })
   .refine((data) => data.salary_end >= data.salary_start, {
     message: "Salary end must be greater than or equal to salary start",
