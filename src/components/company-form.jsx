@@ -24,16 +24,16 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { companyInputSchema } from "@/schemas";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useSession } from "@clerk/clerk-react";
-import { handleAddCompanySupabase } from "@/shared/api/api";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useToken } from "@/context/sessionContext";
+import { createCompany } from "@/api/company.api";
 
 export const CompanyForm = ({ states = [] }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [companyFormSubmitLoading, setCompanyFormSubmitLoading] =
     useState(false);
-  const { session } = useSession();
+  const { token: supabaseAccessToken } = useToken();
   const queryClient = useQueryClient();
 
   const {
@@ -61,14 +61,13 @@ export const CompanyForm = ({ states = [] }) => {
         throw new Error("Please upload a company logo!!");
       }
 
-      const res = await handleAddCompanySupabase(session, {
+      const res = await createCompany(supabaseAccessToken, {
         name: data.name,
         location: data.location,
         website_url: data.website_url,
         fileName,
         file: data.logo,
       });
-
       return res;
     },
     onSuccess: () => {
