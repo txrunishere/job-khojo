@@ -3,7 +3,9 @@ import supabaseClient from "@/utils/supabase";
 const getAllJobs = async (token) => {
   const supabase = await supabaseClient(token);
 
-  const { data, error } = await supabase.from("Job").select("*");
+  const { data, error } = await supabase
+    .from("Job")
+    .select("*, company:Company(logo_url, name)");
 
   if (error) {
     console.log("Supabase Error :: While Fetching Jobs :: Error", error);

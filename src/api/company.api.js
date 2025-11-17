@@ -15,13 +15,13 @@ const createCompany = async (token, companyData) => {
   const { data: uploadData, error: uploadError } = await supabase.storage
     .from("company-logo")
     .upload(companyData.fileName, companyData.file);
-
+  console.log(uploadData);
   if (uploadError) {
     console.log("Supabase Error :: Uploading company logo :: ", uploadError);
     throw new Error();
   }
 
-  const { data: publicUrlData } = supabase.storage
+  const { data: publicUrlData } = await supabase.storage
     .from("company-logo")
     .getPublicUrl(uploadData.path);
 

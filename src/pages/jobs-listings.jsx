@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "@clerk/clerk-react";
-import ClipLoader from "react-spinners/ClipLoader";
 import { getAllJobs } from "@/api/jobs.api";
 import { BarLoader } from "react-spinners";
+import { Heading, JobCard } from "@/components";
 
 export function JobListings() {
   const { session, isLoaded } = useSession();
@@ -18,6 +18,7 @@ export function JobListings() {
 
       return res;
     },
+    enabled: !isLoaded,
   });
 
   if (isLoading || !isLoaded) {
@@ -28,22 +29,23 @@ export function JobListings() {
     );
   }
 
-  if (!jobs || jobs.length === 0) {
-    return <p className="py-5 text-center text-gray-500">No jobs found.</p>;
-  }
-
   return (
-    <div className="space-y-2 px-2">
-      {jobs.map((job) => (
-        <div
-          key={job.id}
-          className="rounded-lg border p-4 shadow-sm transition hover:shadow"
-        >
-          <h2 className="text-lg font-semibold">{job.title}</h2>
-          <p className="text-gray-600">{job.company}</p>
-          <p className="mt-2 text-sm">{job.description}</p>
-        </div>
-      ))}
+    <div className="space-y-2 px-4 sm:px-2">
+      <section>
+        <Heading>Latest Jobs</Heading>
+      </section>
+      <main className="py-10">
+        <div className="mb-10">Filters</div>
+        {jobs && jobs.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+            {jobs.map((job) => (
+              <JobCard key={job.id} job={job} />
+            ))}
+          </div>
+        ) : (
+          <p className="mt-10 text-center text-neutral-400">No Jobs Found!!</p>
+        )}
+      </main>
     </div>
   );
 }
