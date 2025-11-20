@@ -22,7 +22,7 @@ export const jobInputSchema = z
     experience: z.coerce
       .number()
       .min(0, "Experience cannot be negative")
-      .max(30, "Experience cannot exceed 30 years"),
+      .max(360, "Experience cannot exceed 30 years"),
 
     salary_start: z.coerce
       .number()

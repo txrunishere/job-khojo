@@ -1,51 +1,103 @@
-import { useQuery } from "@tanstack/react-query";
-import { useSession } from "@clerk/clerk-react";
 import { getAllJobs } from "@/api/jobs.api";
-import { BarLoader } from "react-spinners";
 import { Heading, JobCard } from "@/components";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useSupabase } from "@/hooks";
+import { useSession } from "@clerk/clerk-react";
+import { useEffect, useState } from "react";
+import { BarLoader } from "react-spinners";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export function JobListings() {
-  const { session, isLoaded } = useSession();
+  const [title, setTitle] = useState("");
+  const [location, setLocation] = useState("");
+  const [company, setCompany] = useState("");
 
-  const { data: jobs, isLoading } = useQuery({
-    queryKey: ["jobs"],
-    queryFn: async () => {
-      const token = await session.getToken({
-        template: "supabase",
-      });
+  const {
+    fn: fnGetAllJobs,
+    data: jobs,
+    isLoading: jobsLoading,
+  } = useSupabase(getAllJobs);
+  const { isLoaded: sessionLoaded } = useSession();
 
-      const res = await getAllJobs(token);
+  useEffect(() => {
+    if (sessionLoaded) fnGetAllJobs();
+  }, [sessionLoaded]);
 
-      return res;
-    },
-    enabled: !isLoaded,
-  });
-
-  if (isLoading || !isLoaded) {
+  if (!sessionLoaded)
     return (
-      <div className="px-2">
-        <BarLoader color="white" width={"100%"} />
+      <div className="px-4">
+        <BarLoader width={"100%"} color={"white"} />
       </div>
     );
-  }
 
   return (
-    <div className="space-y-2 px-4 sm:px-2">
+    <div>
       <section>
-        <Heading>Latest Jobs</Heading>
+        <Heading>Top Jobs</Heading>
       </section>
-      <main className="py-10">
-        <div className="mb-10">Filters</div>
-        {jobs && jobs.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-            {jobs.map((job) => (
-              <JobCard key={job.id} job={job} />
-            ))}
-          </div>
-        ) : (
-          <p className="mt-10 text-center text-neutral-400">No Jobs Found!!</p>
-        )}
-      </main>
+      {jobsLoading && (
+        <div className="px-4 py-8">
+          <BarLoader width={"100%"} color={"white"} />
+        </div>
+      )}
+      <div className={"px-4 py-8"}>
+        {!jobsLoading &&
+          (jobs?.length > 0 ? (
+            <div>
+              <div className="mx-auto max-w-4xl space-y-3 py-6">
+                <div className="flex gap-2">
+                  <Input type={"text"} placeholder={"Enter title or keyword"} />
+                  <Button>Search</Button>
+                </div>
+                <div>
+                  <div className="flex gap-3">
+                    <Select>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Filter by Companies" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectLabel>Companies</SelectLabel>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+
+                    <Select>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Filter by Location" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectLabel>Locations</SelectLabel>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+
+                    <div>
+                      <Button variant={"destructive"}>Clear Filters</Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {jobs.map((job) => {
+                  const key = job.id;
+                  return <JobCard key={key} job={job} />;
+                })}
+              </div>
+            </div>
+          ) : (
+            <p className="py-10 text-center sm:text-lg">No Jobs Found!!</p>
+          ))}
+      </div>
     </div>
   );
 }

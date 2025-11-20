@@ -2,19 +2,30 @@ import config from "@/config";
 import supabaseClient from "@/utils/supabase";
 import axios from "axios";
 
-const getAllJobs = async (token) => {
+const getAllJobs = async (token, { location, company, title } = {}) => {
   const supabase = await supabaseClient(token);
 
-  const { data, error } = await supabase
-    .from("Job")
-    .select("*, company:Company(logo_url, name)");
+  let query = supabase.from("Job").select("*, company: Company(name,logo_url)");
+
+  if (location) {
+    query = query.eq("location", location);
+  }
+
+  if (company) {
+    query = query.eq("company_id", company);
+  }
+
+  if (title) {
+    query = query.ilike("title", `%${title}%`);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.log("Supabase Error :: While Fetching Jobs :: Error", error);
     throw new Error(error.message);
   }
 
-  console.log({ data });
   return data;
 };
 
