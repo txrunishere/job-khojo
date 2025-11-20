@@ -1,4 +1,6 @@
+import config from "@/config";
 import supabaseClient from "@/utils/supabase";
+import axios from "axios";
 
 const getAllJobs = async (token) => {
   const supabase = await supabaseClient(token);
@@ -33,7 +35,10 @@ const getAllJobs = async (token) => {
 const insertJobSupabase = async (token, jobData) => {
   const supabase = await supabaseClient(token);
 
-  const { error, data } = await supabase.from("Job").insert(jobData);
+  const { error, data } = await supabase
+    .from("Job")
+    .insert(jobData)
+    .select("*");
 
   if (error) {
     console.log("Supabase Error :: While Insert Job :: Error", error);
@@ -43,4 +48,17 @@ const insertJobSupabase = async (token, jobData) => {
   return data;
 };
 
-export { getAllJobs, insertJobSupabase };
+const fetchStates = async () => {
+  const res = await axios.get(
+    "https://api.countrystatecity.in/v1/countries/IN/states",
+    {
+      headers: {
+        "X-CSCAPI-KEY": config.STATES_API_KEY,
+      },
+    },
+  );
+
+  return res.data;
+};
+
+export { getAllJobs, insertJobSupabase, fetchStates };

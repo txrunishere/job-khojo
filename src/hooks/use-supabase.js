@@ -4,27 +4,38 @@ import { useState } from "react";
 export const useSupabase = (cb) => {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const { isLoaded, session } = useSession();
 
   const fn = async (...args) => {
-    setLoading(true);
+    setIsLoading(true);
     setError(null);
-    try {
-      if (isLoaded) {
-        const supabaseAccessToken = await session.getToken({
-          template: "supabase",
-        });
 
-        const res = await cb(supabaseAccessToken, ...args);
-        setData(res);
+    try {
+      if (!isLoaded || !session) {
+        throw new Error("Session not ready");
       }
-    } catch (error) {
-      setError(error);
+
+      // ✅ Correct: get Supabase token
+      const supabaseAccessToken = await session?.getToken({
+        template: "supabase",
+      });
+
+      if (!supabaseAccessToken) {
+        throw new Error("Failed to fetch Supabase access token");
+      }
+
+      // Run your callback with token + rest of args
+      const result = await cb(supabaseAccessToken, ...args);
+      setData(result);
+      return result;
+    } catch (err) {
+      console.error("useSupabase error:", err);
+      setError(err);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  return { data, error, loading, fn };
+  return { data, error, isLoading, fn };
 };

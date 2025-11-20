@@ -23,180 +23,173 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { companyInputSchema } from "@/schemas";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { useToken } from "@/context/sessionContext";
 import { createCompany } from "@/api/company.api";
+import { useSupabase } from "@/hooks";
+import { useState } from "react";
 
 export const CompanyForm = ({ states = [] }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [companyFormSubmitLoading, setCompanyFormSubmitLoading] =
-    useState(false);
-  const { token: supabaseAccessToken } = useToken();
-  const queryClient = useQueryClient();
+
+  const { fn: fnCreateCompany } = useSupabase(createCompany);
 
   const {
     register,
     handleSubmit,
     setValue,
-    formState: { errors: formErrors },
+    formState: { errors },
   } = useForm({
     resolver: zodResolver(companyInputSchema),
     defaultValues: {
-      location: "",
-      logo: null,
       name: "",
       website_url: "",
+      location: "",
+      logo: null,
     },
-    mode: "onSubmit",
+    mode: "onChange",
+    reValidateMode: "onChange",
   });
 
-  const handleAddCompany = useMutation({
-    mutationFn: async (data) => {
-      setCompanyFormSubmitLoading(true);
-      const fileName = Date.now() + "-" + data.logo.name;
-
-      if (!data.logo) {
-        throw new Error("Please upload a company logo!!");
+  const addCompanyMutation = useMutation({
+    mutationFn: async (formData) => {
+      if (!formData.logo) {
+        throw new Error("Please upload a company logo!");
       }
+      const fileName = `${Date.now()}-${formData.logo.name}`;
 
-      const res = await createCompany(supabaseAccessToken, {
-        name: data.name,
-        location: data.location,
-        website_url: data.website_url,
+      return await fnCreateCompany({
+        name: formData.name,
+        location: formData.location,
+        website_url: formData.website_url,
         fileName,
-        file: data.logo,
+        file: formData.logo,
       });
-      return res;
     },
+
     onSuccess: () => {
-      queryClient.invalidateQueries(["companies"]);
-      toast.success("The company was successfully added!");
+      toast.success("Company added successfully!");
       setIsOpen(false);
-      setCompanyFormSubmitLoading(false);
     },
+
     onError: (err) => {
       toast.error(err.message);
-      setCompanyFormSubmitLoading(false);
     },
   });
 
-  const handleFileUploadInputChange = (e) => {
+  const handleFileChange = (e) => {
     if (e.target?.files[0]) {
-      setValue("logo", e.target.files[0], {
-        shouldValidate: true,
-      });
+      setValue("logo", e.target.files[0], { shouldValidate: true });
     }
   };
 
-  const handleStateInputChange = (value) =>
+  const handleSelectLocation = (value) => {
     setValue("location", value, { shouldValidate: true });
-
-  const handleIsOpenDrawer = () => {
-    setIsOpen(true);
   };
 
   return (
     <Drawer open={isOpen} onOpenChange={setIsOpen}>
       <DrawerTrigger asChild>
-        <Button variant="outline" onClick={handleIsOpenDrawer}>
-          Add Company
-        </Button>
+        <Button variant="outline">Add Company</Button>
       </DrawerTrigger>
+
       <DrawerContent>
-        <div className={"mx-auto max-w-4xl"}>
-          {/* header */}
-          <DrawerHeader className={"mb-4"}>
+        <div className="mx-auto max-w-4xl">
+          {/* HEADER */}
+          <DrawerHeader className="mb-4">
             <DrawerTitle>Add a New Company</DrawerTitle>
           </DrawerHeader>
-          {/* main content */}
-          <div className="space-y-4 px-4">
+
+          {/* FORM */}
+          <div className="space-y-6 px-4">
+            {/* NAME - LOGO - WEBSITE */}
             <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+              {/* NAME */}
               <InputField>
                 <Label htmlFor="name">Company Name</Label>
                 <Input
-                  id={"name"}
+                  id="name"
                   placeholder="ex. Google, Meta, Netflix"
-                  type={"text"}
                   {...register("name")}
                 />
-                {formErrors.name && (
-                  <p className="text-sm text-red-500">
-                    {formErrors.name.message}
-                  </p>
+                {errors.name && (
+                  <p className="text-sm text-red-500">{errors.name.message}</p>
                 )}
               </InputField>
+
+              {/* LOGO */}
               <InputField>
-                <Label htmlFor={"logo"}>Company Logo</Label>
+                <Label htmlFor="logo">Company Logo</Label>
                 <Input
                   id="logo"
+                  type="file"
                   accept="image/png, image/jpeg, image/svg+xml"
-                  onChange={handleFileUploadInputChange}
-                  type={"file"}
+                  onChange={handleFileChange}
                 />
-                {formErrors.logo && (
-                  <p className="text-sm text-red-500">
-                    {formErrors.logo.message}
-                  </p>
+                {errors.logo && (
+                  <p className="text-sm text-red-500">{errors.logo.message}</p>
                 )}
               </InputField>
+
+              {/* WEBSITE */}
               <InputField>
-                <Label htmlFor={"website_url"}>Website URL</Label>
+                <Label htmlFor="website_url">Website URL</Label>
                 <Input
-                  {...register("website_url")}
                   id="website_url"
-                  placeholder={"ex. https://google.com"}
-                  type={"text"}
+                  placeholder="ex. https://google.com"
+                  {...register("website_url")}
                 />
-                {formErrors.website_url && (
+                {errors.website_url && (
                   <p className="text-sm text-red-500">
-                    {formErrors.website_url.message}
+                    {errors.website_url.message}
                   </p>
                 )}
               </InputField>
             </div>
-            <div className="">
-              <InputField>
-                <Label>Location</Label>
-                <Select defaultValue="" onValueChange={handleStateInputChange}>
-                  <SelectTrigger className={"w-full"}>
-                    <SelectValue placeholder="Select a Location" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>Locations</SelectLabel>
-                      {states?.map((state) => (
-                        <SelectItem key={state.id} value={state.name}>
-                          {state.name}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-                {formErrors.location && (
-                  <p className="text-sm text-red-500">
-                    {formErrors.location.message}
-                  </p>
-                )}
-              </InputField>
-            </div>
-            <div>
-              <Button
-                disabled={companyFormSubmitLoading}
-                className={"w-full"}
-                onClick={handleSubmit((formData) =>
-                  handleAddCompany.mutate(formData),
-                )}
-              >
-                {companyFormSubmitLoading ? "Submitting..." : "Submit"}
-              </Button>
-            </div>
+
+            {/* LOCATION */}
+            <InputField>
+              <Label>Location</Label>
+              <Select onValueChange={handleSelectLocation}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a Location" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Locations</SelectLabel>
+                    {states?.map((state) => (
+                      <SelectItem key={state.id} value={state.name}>
+                        {state.name}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+
+              {errors.location && (
+                <p className="text-sm text-red-500">
+                  {errors.location.message}
+                </p>
+              )}
+            </InputField>
+
+            {/* SUBMIT */}
+            <Button
+              onClick={handleSubmit((formData) =>
+                addCompanyMutation.mutate(formData),
+              )}
+              className="w-full"
+              disabled={addCompanyMutation.isPending}
+            >
+              {addCompanyMutation.isPending ? "Submitting..." : "Submit"}
+            </Button>
           </div>
-          {/* footer */}
+
+          {/* FOOTER */}
           <DrawerFooter>
             <DrawerClose asChild>
-              <Button variant={"outline"}>Cancel</Button>
+              <Button variant="outline">Cancel</Button>
             </DrawerClose>
           </DrawerFooter>
         </div>

@@ -3,7 +3,6 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { jobInputSchema } from "@/schemas";
-import { fetchStates, getCompanies, insertJob } from "@/shared/api/api";
 import { useSession } from "@clerk/clerk-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -12,17 +11,34 @@ import { BarLoader } from "react-spinners";
 import { SelectJobLocation } from "./select-job-location";
 import { SelectJobCompany } from "./select-job-company";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { IsOpenJobSelect } from "./isopen-job.select";
 import { JobEmploymentTypeSelect } from "./job-employment-type-select";
 import { RequirementsTextEditor } from "./requirements-text-editor";
+import { useSupabase } from "@/hooks";
+import { insertJobSupabase, fetchStates } from "@/api/jobs.api";
+import { getAllCompanies } from "@/api/company.api";
 
 export const PostJobForm = () => {
-  const { isLoaded, session } = useSession();
+  const { isLoaded } = useSession();
   const [handleJobFormLoading, setHandleJobFormLoading] = useState(false);
+
+  const {
+    isLoading: companiesLoading,
+    data: companiesData,
+    fn: fnGetCompanies,
+  } = useSupabase(getAllCompanies);
+
+  const { fn: fnInsertJob } = useSupabase(insertJobSupabase);
+
+  useEffect(() => {
+    if (isLoaded) fnGetCompanies();
+  }, [isLoaded]);
 
   const methods = useForm({
     resolver: zodResolver(jobInputSchema),
+    mode: "onChange",
+    reValidateMode: "onChange",
     defaultValues: {
       company: "",
       description: "",
@@ -49,28 +65,35 @@ export const PostJobForm = () => {
     queryFn: () => fetchStates(),
   });
 
-  const { data: companyList, isLoading: companyLoading } = useQuery({
-    queryKey: ["companies"],
-    queryFn: async () => await getCompanies(session),
-  });
+  function safeParseCompany(val) {
+    try {
+      return JSON.parse(val)?.id ?? null;
+    } catch {
+      return null;
+    }
+  }
 
   const handleAddJob = useMutation({
-    mutationFn: async (data) => {
+    mutationFn: async (formData) => {
       setHandleJobFormLoading(true);
-      const res = await insertJob(session, {
-        title: data.title,
-        description: data.description,
-        requirements: data.requirements,
-        experience: Number(data.experience),
-        "salary-start": Number(data.salary_start),
-        "salary-end": Number(data.salary_end),
-        isOpen: data.isOpen,
-        company_id: JSON.parse(data.company).id,
-        location: data.location,
-        employment_type: data.employment_type,
-      });
-      return res;
+
+      const payload = {
+        title: formData.title,
+        description: formData.description,
+        requirements: formData.requirements,
+        experience: Number(formData.experience),
+        "salary-start": Number(formData.salary_start),
+        "salary-end": Number(formData.salary_end),
+        isOpen: formData.isOpen,
+        company_id: safeParseCompany(formData.company),
+        location: formData.location,
+        employment_type: formData.employment_type,
+      };
+
+      const result = await fnInsertJob(payload); // return actual value
+      return result;
     },
+
     onSuccess: () => {
       toast.success("Job added successfully!!");
       setHandleJobFormLoading(false);
@@ -82,7 +105,10 @@ export const PostJobForm = () => {
     },
   });
 
-  if (statesLoading && !isLoaded && companyLoading) {
+  const isLoadingOverall =
+    statesLoading || companiesLoading || !isLoaded || handleJobFormLoading;
+
+  if (isLoadingOverall) {
     return (
       <div className="px-3">
         <BarLoader width={"100%"} color="white" />
@@ -97,23 +123,22 @@ export const PostJobForm = () => {
           className="space-y-8"
           onSubmit={handleSubmit((formData) => handleAddJob.mutate(formData))}
         >
-          {/* Title Field */}
+          {/* TITLE */}
           <InputField>
             <Label htmlFor="title">Job Title</Label>
             <Input
               {...register("title")}
               type="text"
               id="title"
-              placeholder="ex. Devops Enginner"
+              placeholder="ex. DevOps Engineer"
             />
             {jobErrors.title && (
               <p className="text-sm text-red-500">{jobErrors.title.message}</p>
             )}
           </InputField>
 
-          {/* Description Field */}
+          {/* DESCRIPTION */}
           <InputField>
-            {/* Add a text count  */}
             <Label htmlFor="description">Job Description</Label>
             <Input type="text" id="description" {...register("description")} />
             {jobErrors.description && (
@@ -123,43 +148,37 @@ export const PostJobForm = () => {
             )}
           </InputField>
 
-          {/* Location and Company field */}
+          {/* LOCATION + COMPANY */}
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            {/* Location */}
             <SelectJobLocation statesData={statesData} />
-
-            {/* Company */}
             <SelectJobCompany
               statesData={statesData}
-              companyList={companyList}
+              companyList={companiesData}
             />
           </div>
 
-          {/* expirence, and salary */}
+          {/* EXPERIENCE + SALARY */}
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 sm:gap-3">
             <SalarySelect />
           </div>
 
-          <div>
-            <RequirementsTextEditor />
-          </div>
+          {/* REQUIREMENTS */}
+          <RequirementsTextEditor />
 
-          {/* Employment Type and skills */}
+          {/* EMPLOYMENT TYPE + ISOPEN */}
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             <JobEmploymentTypeSelect />
             <IsOpenJobSelect />
           </div>
 
-          {/* Submit Button */}
-          <div>
-            <Button
-              disabled={handleJobFormLoading}
-              className={"w-full"}
-              type={"submit"}
-            >
-              {handleJobFormLoading ? "Submitting..." : "Submit"}
-            </Button>
-          </div>
+          {/* SUBMIT */}
+          <Button
+            disabled={handleJobFormLoading}
+            className="w-full"
+            type="submit"
+          >
+            {handleJobFormLoading ? "Submitting..." : "Submit"}
+          </Button>
         </form>
       </FormProvider>
     </div>
@@ -175,28 +194,26 @@ const SalarySelect = () => {
   return (
     <>
       <InputField>
-        <Label htmlFor="expirence">Expirence (in months)</Label>
-        <Input type={"number"} id="expirence" {...register("experience")} />
+        <Label htmlFor="experience">Experience (in months)</Label>
+        <Input type="number" id="experience" {...register("experience")} />
         {jobErrors.experience && (
           <p className="text-sm text-red-500">{jobErrors.experience.message}</p>
         )}
       </InputField>
+
       <InputField>
-        <Label htmlFor="salary-start">Salary (start)</Label>
-        <Input
-          type={"number"}
-          id="salary-start"
-          {...register("salary_start")}
-        />
+        <Label htmlFor="salary-start">Salary Start</Label>
+        <Input type="number" id="salary-start" {...register("salary_start")} />
         {jobErrors.salary_start && (
           <p className="text-sm text-red-500">
             {jobErrors.salary_start.message}
           </p>
         )}
       </InputField>
+
       <InputField>
-        <Label htmlFor="salary-end">Salary (end)</Label>
-        <Input type={"number"} id="salary-end" {...register("salary_end")} />
+        <Label htmlFor="salary-end">Salary End</Label>
+        <Input type="number" id="salary-end" {...register("salary_end")} />
         {jobErrors.salary_end && (
           <p className="text-sm text-red-500">{jobErrors.salary_end.message}</p>
         )}

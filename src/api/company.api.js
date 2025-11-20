@@ -15,7 +15,7 @@ const createCompany = async (token, companyData) => {
   const { data: uploadData, error: uploadError } = await supabase.storage
     .from("company-logo")
     .upload(companyData.fileName, companyData.file);
-  console.log(uploadData);
+
   if (uploadError) {
     console.log("Supabase Error :: Uploading company logo :: ", uploadError);
     throw new Error();
@@ -39,17 +39,6 @@ const createCompany = async (token, companyData) => {
 
   if (insertError) {
     console.log("Supabase Error :: Inserting company :: ", insertError);
-
-    const { error: deleteError } = await supabase.storage
-      .from("company-logo")
-      .remove([uploadData.path]);
-
-    if (deleteError) {
-      console.log(
-        "Supabase Error :: Deleting company logo after insert fail :: ",
-        deleteError,
-      );
-    }
 
     throw new Error(insertError.message);
   }
