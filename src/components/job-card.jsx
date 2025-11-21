@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "./ui/card";
+import { Link } from "react-router";
 
 export const JobCard = ({ job }) => {
   return (
@@ -30,8 +31,10 @@ export const JobCard = ({ job }) => {
         <div className="my-4 h-px w-full bg-gray-300"></div>
         <CardDescription>{job.description}</CardDescription>
       </CardContent>
-      <CardFooter>
-        <Button className={"w-full"}>More Details</Button>
+      <CardFooter className={"mt-auto"}>
+        <Link className="w-full" to={`/jobs/${job.id}`}>
+          <Button className={"w-full"}>More Details</Button>
+        </Link>
       </CardFooter>
     </Card>
   );
