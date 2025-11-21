@@ -11,7 +11,7 @@ const getAllJobs = async (
   let query = supabase.from("Job").select("*, company: Company(name,logo_url)");
 
   if (location) {
-    query = query.eq("location", location);
+    query = query.ilike("location", `%${location}%`);
   }
 
   if (company) {

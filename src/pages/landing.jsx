@@ -18,7 +18,11 @@ export const Landing = () => {
   const plugin = useRef(Autoplay({ delay: 2000, stopOnInteraction: true }));
 
   const handleSearch = () => {
-    if (!titleInputRef.current.value && !locationInputRef.current.value) return;
+    if (
+      !titleInputRef.current.value.trim() &&
+      !locationInputRef.current.value.trim()
+    )
+      return;
 
     navigate(
       `/jobs?location=${locationInputRef.current.value.trim().toLowerCase()}&title=${titleInputRef.current.value.trim().toLowerCase()}`,

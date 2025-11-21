@@ -15,11 +15,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useSearchParams } from "react-router";
 
 export function JobListings() {
   const [title, setTitle] = useState("");
   const [location, setLocation] = useState("");
   const [company, setCompany] = useState("");
+  const [search, setSearch] = useSearchParams();
+
+  console.log(search);
+
+  // useEffect(() => {
+  //   if (!sessionLoaded) return;
+  // }, [search]);
 
   const {
     fn: fnGetAllJobs,
@@ -29,7 +37,15 @@ export function JobListings() {
   const { isLoaded: sessionLoaded } = useSession();
 
   useEffect(() => {
-    if (sessionLoaded) fnGetAllJobs({ title, company, location });
+    if (!sessionLoaded) return;
+    if (search.get("location") && search.get("title")) {
+      fnGetAllJobs({
+        location: search.get("location") || "",
+        title: search.get("title") || "",
+      });
+    } else {
+      fnGetAllJobs({ title, company, location });
+    }
   }, [sessionLoaded]);
 
   useEffect(() => {
@@ -50,10 +66,13 @@ export function JobListings() {
   };
 
   const handleClearFilters = async () => {
-    setTitle("");
-    setCompany("");
-    setLocation("");
-    await fnGetAllJobs({});
+    if (title || company || location || search.size > 0) {
+      setTitle("");
+      setCompany("");
+      setLocation("");
+      setSearch({});
+      await fnGetAllJobs({});
+    }
   };
 
   const handleTitleSearch = async (e) => {
@@ -115,8 +134,8 @@ export function JobListings() {
                         <SelectGroup>
                           <SelectLabel>Locations</SelectLabel>
                           <SelectItem value={"delhi"}>Delhi</SelectItem>
-                          <SelectItem value={"Manipur"}>Manipur</SelectItem>
-                          <SelectItem value={"Punjab"}>Punjab</SelectItem>
+                          <SelectItem value={"manipur"}>Manipur</SelectItem>
+                          <SelectItem value={"punjab"}>Punjab</SelectItem>
                         </SelectGroup>
                       </SelectContent>
                     </Select>
