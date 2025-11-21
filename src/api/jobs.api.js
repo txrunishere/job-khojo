@@ -2,7 +2,10 @@ import config from "@/config";
 import supabaseClient from "@/utils/supabase";
 import axios from "axios";
 
-const getAllJobs = async (token, { location, company, title } = {}) => {
+const getAllJobs = async (
+  token,
+  { location = "", company = "", title = "" },
+) => {
   const supabase = await supabaseClient(token);
 
   let query = supabase.from("Job").select("*, company: Company(name,logo_url)");
