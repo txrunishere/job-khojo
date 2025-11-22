@@ -2,6 +2,19 @@ import config from "@/config";
 import supabaseClient from "@/utils/supabase";
 import axios from "axios";
 
+const fetchStates = async () => {
+  const res = await axios.get(
+    "https://api.countrystatecity.in/v1/countries/IN/states",
+    {
+      headers: {
+        "X-CSCAPI-KEY": config.STATES_API_KEY,
+      },
+    },
+  );
+
+  return res.data;
+};
+
 const getAllJobs = async (
   token,
   { location = "", company = "", title = "" },
@@ -62,17 +75,26 @@ const insertJobSupabase = async (token, jobData) => {
   return data;
 };
 
-const fetchStates = async () => {
-  const res = await axios.get(
-    "https://api.countrystatecity.in/v1/countries/IN/states",
-    {
-      headers: {
-        "X-CSCAPI-KEY": config.STATES_API_KEY,
-      },
-    },
-  );
+const getJobById = async (token, { job_id }) => {
+  const supabase = await supabaseClient(token);
 
-  return res.data;
+  const { error, data } = await supabase
+    .from("Job")
+    .select(
+      "*, company: Company(logo_url, website_url, name), applications: Application(id)",
+    )
+    .eq("id", job_id);
+
+  if (error) {
+    console.log(
+      "Supabase Error :: While Fetching Job with job_id :: Error",
+      error,
+    );
+
+    throw new Error(error.message);
+  }
+
+  return data;
 };
 
-export { getAllJobs, insertJobSupabase, fetchStates };
+export { getAllJobs, insertJobSupabase, fetchStates, getJobById };
