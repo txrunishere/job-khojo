@@ -57,4 +57,25 @@ const uplaodApplicationResume = async (supabase, fileData) => {
   return data;
 };
 
-export { insertApplication };
+const fetchMyApplications = async (token, { user_id }) => {
+  const supabase = await supabaseClient(token);
+
+  const { error, data } = await supabase
+    .from("Application")
+    .select(
+      "id, job: Job(id, company_id, description, title, location, company: Company(name, logo_url))",
+    )
+    .eq("user_id", user_id);
+
+  if (error) {
+    console.log(
+      "Supabase Error :: While fetching user's applications :: Error",
+      error,
+    );
+    throw new Error(error.message);
+  }
+
+  return data;
+};
+
+export { insertApplication, fetchMyApplications };
