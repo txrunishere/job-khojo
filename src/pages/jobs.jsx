@@ -131,6 +131,8 @@ export const Jobs = () => {
     );
   }
 
+  // TODO: fix it with maybeSingle() method in api file
+
   return (
     <div>
       {!jobLoading && (

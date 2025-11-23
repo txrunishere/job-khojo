@@ -9,15 +9,24 @@ import {
   CardTitle,
 } from "./ui/card";
 import { Link } from "react-router";
+import { useSavedJobs } from "@/context/SaveJobsContext";
 
 export const JobCard = ({ job }) => {
+  const { savedJobs, toggleSave } = useSavedJobs();
+
+  const isSaved = savedJobs?.includes(job.id);
+
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>{job.title}</CardTitle>
-          <Button variant={"outline"} size={"icon-sm"}>
-            <Heart />
+          <Button
+            variant={"outline"}
+            onClick={() => toggleSave(job.id)}
+            size={"icon-sm"}
+          >
+            {isSaved ? <Heart fill="white" /> : <Heart />}
           </Button>
         </div>
       </CardHeader>
