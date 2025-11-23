@@ -177,8 +177,8 @@ export const Jobs = () => {
             </div>
             <div>
               <p className="flex items-center gap-1">
-                <Banknote size={20} />
-                {jobData?.[0]["salary-start"]} - {jobData?.[0]["salary-end"]}
+                <Banknote size={20} /> ₹{jobData?.[0]["salary-start"]} -{" "}
+                {jobData?.[0]["salary-end"]}
               </p>
             </div>
             <div>
