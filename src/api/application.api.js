@@ -1,5 +1,6 @@
 import supabaseClient from "@/utils/supabase";
 
+// TODO: Remove image if error occour while inserting application
 const insertApplication = async (token, applicationData) => {
   const supabase = await supabaseClient(token);
 
@@ -13,7 +14,7 @@ const insertApplication = async (token, applicationData) => {
   if (res) {
     const { data } = await supabase.storage
       .from("resumes")
-      .getPublicUrl(filePath);
+      .getPublicUrl(applicationData.file.filePath);
 
     const insertData = {
       user_id: applicationData.user_id,

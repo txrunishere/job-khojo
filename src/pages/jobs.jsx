@@ -25,15 +25,19 @@ import {
   MapPin,
   StickyNote,
 } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useParams } from "react-router";
 import { BarLoader } from "react-spinners";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { applicationInputSchema } from "@/schemas";
 import { insertApplication } from "@/api/application.api";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export const Jobs = () => {
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isUserEnrolled, setIsUserEnrolled] = useState(false);
   const { id } = useParams();
   const { isLoaded: sessionLoaded, user } = useUser();
   const {
@@ -42,11 +46,15 @@ export const Jobs = () => {
     isLoading: jobLoading,
   } = useSupabase(getJobById);
 
+  const { fn: fnInsertApplication, isLoading: insertApplicationLoading } =
+    useSupabase(insertApplication);
+
   const {
     register,
     formState: { errors: applicationFormError },
     handleSubmit,
     setValue,
+    reset,
   } = useForm({
     mode: "onChange",
     reValidateMode: "onChange",
@@ -61,10 +69,6 @@ export const Jobs = () => {
 
   const educationStatusArray = ["Graduate", "Post Graduate", "Under Graduate"];
 
-  const handleApplicationForm = async (data) => {
-    console.log(data);
-  };
-
   const handleFileChange = (e) => {
     if (e.target?.files[0]) {
       setValue("resume", e.target.files[0], { shouldValidate: true });
@@ -76,9 +80,48 @@ export const Jobs = () => {
       shouldValidate: true,
     });
 
+  const handleApplicationForm = useMutation({
+    mutationFn: async (formData) => {
+      const filePath = `${Date.now()} - ${formData.resume.name}`;
+      const insertApplicationFormData = {
+        file: {
+          file: formData.resume,
+          filePath,
+        },
+        user_id: user.id,
+        job_id: jobData[0].id,
+        skills: formData.skills,
+        experience: formData.experience,
+        education: formData.education,
+      };
+
+      const res = await fnInsertApplication(insertApplicationFormData);
+      return res;
+    },
+    onSuccess: () => {
+      toast.success(`Applied for ${jobData[0].title} successfully!!`);
+      reset();
+      setIsDrawerOpen(false);
+    },
+    onError: (err) => {
+      toast.error(err.message);
+    },
+  });
+
   useEffect(() => {
-    if (sessionLoaded) fnGetJobById({ job_id: id });
+    if (sessionLoaded) {
+      fnGetJobById({ job_id: id });
+    }
   }, [sessionLoaded]);
+
+  useEffect(() => {
+    const applications = jobData?.[0]?.applications.map(
+      (application) => application.user_id,
+    );
+    if (applications?.includes(user.id)) {
+      setIsUserEnrolled(true);
+    }
+  }, [jobData, sessionLoaded]);
 
   if (!sessionLoaded || jobLoading) {
     return (
@@ -116,18 +159,18 @@ export const Jobs = () => {
               </p>
             </div>
             <div>
-              <p className="flex items-center gap-1">
+              <p className="flex items-center gap-1.5">
                 <StickyNote size={20} />
                 {jobData?.[0].applications.length} applications
               </p>
             </div>
             <div className="">
               {jobData?.[0].isOpen ? (
-                <p className="flex gap-1">
+                <p className="flex items-center gap-1">
                   <DoorOpen size={20} /> <span>OPEN</span>
                 </p>
               ) : (
-                <p className="flex gap-1">
+                <p className="flex items-center gap-1">
                   <DoorClosed size={20} /> <span>CLOSED</span>
                 </p>
               )}
@@ -162,7 +205,7 @@ export const Jobs = () => {
 
           {/* APPLY BUTTON */}
           <div>
-            <Drawer>
+            <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
               <DrawerTrigger
                 className={
                   "bg-primary text-primary-foreground hover:bg-primary/90 w-full rounded-md py-1 font-bold"
@@ -238,7 +281,12 @@ export const Jobs = () => {
                   </InputField>
                 </div>
                 <DrawerFooter className={""}>
-                  <Button onClick={handleSubmit(handleApplicationForm)}>
+                  <Button
+                    onClick={handleSubmit((formData) =>
+                      handleApplicationForm.mutate(formData),
+                    )}
+                    disabled={insertApplicationLoading || isUserEnrolled}
+                  >
                     Submit
                   </Button>
                   <DrawerClose className={"rounded-md border-2 py-1"}>

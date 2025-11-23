@@ -32,6 +32,7 @@ export const useSupabase = (cb) => {
     } catch (err) {
       console.error("useSupabase error:", err);
       setError(err);
+      throw new Error(err);
     } finally {
       setIsLoading(false);
     }

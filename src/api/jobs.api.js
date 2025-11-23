@@ -81,7 +81,7 @@ const getJobById = async (token, { job_id }) => {
   const { error, data } = await supabase
     .from("Job")
     .select(
-      "*, company: Company(logo_url, website_url, name), applications: Application(id)",
+      "*, company: Company(logo_url, website_url, name), applications: Application(id, user_id)",
     )
     .eq("id", job_id);
 
