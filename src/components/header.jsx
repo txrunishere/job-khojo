@@ -11,11 +11,19 @@ import {
 import { useEffect, useState } from "react";
 import { Briefcase, Heart } from "lucide-react";
 import { useIsMobile } from "@/hooks";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
 
 export const Header = () => {
   const [showSignIn, setShowSignIn] = useState(false);
   const [showSignUp, setShowSignUp] = useState(false);
   const [urlSearchParams, setUrlSearchParams] = useSearchParams();
+  const [isOpen, setIsOpen] = useState(false);
   const { isLoaded } = useUser();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
@@ -45,6 +53,8 @@ export const Header = () => {
   const handleDashboardNavigation = () => {
     navigate("/dashboard");
   };
+
+  const handleRecruiterModel = () => setIsOpen(true);
 
   return (
     <>
@@ -90,6 +100,16 @@ export const Header = () => {
                       size={"sm"}
                     >
                       Dashboard
+                    </Button>
+                  )}
+                  {pathname === "/dashboard" && (
+                    <Button
+                      onClick={handleRecruiterModel}
+                      variant={"outline"}
+                      className={"text-xs"}
+                      size={"sm"}
+                    >
+                      Hire Candidate ?
                     </Button>
                   )}
                   <UserButton
@@ -140,6 +160,30 @@ export const Header = () => {
           className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-xs"
         >
           <SignUp />
+        </div>
+      )}
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
+          <div className="bg-card border-muted flex flex-col gap-6 rounded-xl border p-6">
+            <div>
+              <h4 className="text-[16px] font-semibold">
+                Are you looking to hire candidates?
+              </h4>
+              <p className="text-muted-foreground">
+                Become a recruiter and post jobs.
+              </p>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Button size={"sm"}>Become Recruiter</Button>
+              <Button
+                size={"sm"}
+                variant={"outline"}
+                onClick={() => setIsOpen(false)}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </>
