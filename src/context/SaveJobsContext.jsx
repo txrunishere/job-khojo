@@ -16,12 +16,13 @@ export const SaveJobsProvider = ({ children }) => {
   const { fn: fnInsertSavedJob } = useSupabase(insertSavedJob);
   const { fn: fnDeleteSavedJob } = useSupabase(deleteSavedJob);
 
-  const [savedJobs, setSavedJobs] = useState([]); // stores job_ids
+  const [savedJobIds, setSavedJobIds] = useState([]); // stores job_ids
+  const [savedJobs, setSavedJobs] = useState([]); // all saved jobs of users to display on saved jobs page
 
   const loadSavedJobs = async () => {
     const data = await fnGetSavedJobs({ user_id });
-    console.log(data);
-    setSavedJobs(data.map((item) => item.job_id));
+    setSavedJobIds(data.map((item) => item.job_id));
+    setSavedJobs(data);
   };
 
   // Load saved jobs only once when user loads
@@ -32,21 +33,21 @@ export const SaveJobsProvider = ({ children }) => {
 
   // Toggle save/unsave
   const toggleSave = async (jobId) => {
-    const isSaved = savedJobs.includes(jobId);
+    const isSaved = savedJobIds.includes(jobId);
 
     if (isSaved) {
       // UNSAVE
       await fnDeleteSavedJob({ user_id, job_id: jobId });
-      setSavedJobs((prev) => prev.filter((id) => id !== jobId));
+      setSavedJobIds((prev) => prev.filter((id) => id !== jobId));
     } else {
       // SAVE
       await fnInsertSavedJob({ user_id, job_id: jobId });
-      setSavedJobs((prev) => [...prev, jobId]);
+      setSavedJobIds((prev) => [...prev, jobId]);
     }
   };
 
   return (
-    <SaveJobsContext.Provider value={{ savedJobs, toggleSave }}>
+    <SaveJobsContext.Provider value={{ savedJobIds, savedJobs, toggleSave }}>
       {children}
     </SaveJobsContext.Provider>
   );

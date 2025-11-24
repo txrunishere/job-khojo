@@ -12,9 +12,9 @@ import { Link } from "react-router";
 import { useSavedJobs } from "@/context/SaveJobsContext";
 
 export const JobCard = ({ job }) => {
-  const { savedJobs, toggleSave } = useSavedJobs();
+  const { savedJobIds, toggleSave } = useSavedJobs();
 
-  const isSaved = savedJobs?.includes(job.id);
+  const isSaved = savedJobIds?.includes(job?.id);
 
   return (
     <Card>

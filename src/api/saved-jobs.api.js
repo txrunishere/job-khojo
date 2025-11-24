@@ -5,7 +5,9 @@ const getSavedJob = async (token, { user_id }) => {
 
   const { error, data } = await supabase
     .from("Saved_Jobs")
-    .select("job_id")
+    .select(
+      "job_id, job: Job(id, company_id, description, title, location, company: Company(name, logo_url))",
+    )
     .eq("user_id", user_id);
 
   if (error) {
