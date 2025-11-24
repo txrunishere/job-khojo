@@ -49,7 +49,7 @@ const createCompany = async (token, companyData) => {
 const getAllCompanies = async (token) => {
   const supabase = await supabaseClient(token);
 
-  const { data, error } = await supabase.from("Company").select("*");
+  const { data, error } = await supabase.from("Company").select("id, name");
 
   if (error) {
     console.log("Supbase Error :: While Fetching Companies :: Error", error);

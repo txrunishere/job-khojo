@@ -22,6 +22,7 @@ const insertApplication = async (token, applicationData) => {
       skills: applicationData.skills,
       experience: applicationData.experience,
       education_status: applicationData.education,
+      application_status: "applied",
       resume: data.publicUrl,
     };
 
@@ -63,7 +64,7 @@ const fetchMyApplications = async (token, { user_id }) => {
   const { error, data } = await supabase
     .from("Application")
     .select(
-      "id, job: Job(id, company_id, description, title, location, company: Company(name, logo_url))",
+      "id, application_status, job: Job(id, company_id, description, title, location, company: Company(name, logo_url))",
     )
     .eq("user_id", user_id);
 

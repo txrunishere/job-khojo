@@ -5,35 +5,26 @@ import { Label } from "../ui/label";
 import { jobInputSchema } from "@/schemas";
 import { useSession } from "@clerk/clerk-react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useForm, FormProvider, useFormContext } from "react-hook-form";
 import { BarLoader } from "react-spinners";
 import { SelectJobLocation } from "./select-job-location";
 import { SelectJobCompany } from "./select-job-company";
 import { toast } from "sonner";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { IsOpenJobSelect } from "./isopen-job.select";
 import { JobEmploymentTypeSelect } from "./job-employment-type-select";
 import { RequirementsTextEditor } from "./requirements-text-editor";
 import { useSupabase } from "@/hooks";
-import { insertJobSupabase, fetchStates } from "@/api/jobs.api";
-import { getAllCompanies } from "@/api/company.api";
+import { insertJobSupabase } from "@/api/jobs.api";
+import { useData } from "@/context/DataContext";
 
 export const PostJobForm = () => {
   const { isLoaded } = useSession();
   const [handleJobFormLoading, setHandleJobFormLoading] = useState(false);
-
-  const {
-    isLoading: companiesLoading,
-    data: companiesData,
-    fn: fnGetCompanies,
-  } = useSupabase(getAllCompanies);
+  const { states, companies, loading } = useData();
 
   const { fn: fnInsertJob } = useSupabase(insertJobSupabase);
-
-  useEffect(() => {
-    if (isLoaded) fnGetCompanies();
-  }, [isLoaded]);
 
   const methods = useForm({
     resolver: zodResolver(jobInputSchema),
@@ -59,11 +50,6 @@ export const PostJobForm = () => {
     reset,
     formState: { errors: jobErrors },
   } = methods;
-
-  const { data: statesData, isLoading: statesLoading } = useQuery({
-    queryKey: ["states"],
-    queryFn: () => fetchStates(),
-  });
 
   function safeParseCompany(val) {
     try {
@@ -105,8 +91,7 @@ export const PostJobForm = () => {
     },
   });
 
-  const isLoadingOverall =
-    statesLoading || companiesLoading || !isLoaded || handleJobFormLoading;
+  const isLoadingOverall = loading || !isLoaded || handleJobFormLoading;
 
   if (isLoadingOverall) {
     return (
@@ -150,11 +135,8 @@ export const PostJobForm = () => {
 
           {/* LOCATION + COMPANY */}
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            <SelectJobLocation statesData={statesData} />
-            <SelectJobCompany
-              statesData={statesData}
-              companyList={companiesData}
-            />
+            <SelectJobLocation statesData={states} />
+            <SelectJobCompany statesData={states} companyList={companies} />
           </div>
 
           {/* EXPERIENCE + SALARY */}

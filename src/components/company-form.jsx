@@ -103,7 +103,7 @@ export const CompanyForm = ({ states = [] }) => {
           {/* FORM */}
           <div className="space-y-6 px-4">
             {/* NAME - LOGO - WEBSITE */}
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               {/* NAME */}
               <InputField>
                 <Label htmlFor="name">Company Name</Label>

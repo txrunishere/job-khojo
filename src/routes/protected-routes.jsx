@@ -1,3 +1,4 @@
+import { DataContextProvider } from "@/context/DataContext";
 import { SaveJobsProvider } from "@/context/SaveJobsContext";
 import { useUser } from "@clerk/clerk-react";
 import { Navigate, Outlet } from "react-router";
@@ -9,7 +10,9 @@ export const ProtectedRoutes = () => {
 
   return (
     <SaveJobsProvider>
-      <Outlet />
+      <DataContextProvider>
+        <Outlet />
+      </DataContextProvider>
     </SaveJobsProvider>
   );
 };

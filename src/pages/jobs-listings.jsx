@@ -16,18 +16,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useSearchParams } from "react-router";
+import { useData } from "@/context/DataContext";
 
 export function JobListings() {
   const [title, setTitle] = useState("");
   const [location, setLocation] = useState("");
   const [company, setCompany] = useState("");
   const [search, setSearch] = useSearchParams();
-
-  console.log(search);
-
-  // useEffect(() => {
-  //   if (!sessionLoaded) return;
-  // }, [search]);
+  const { companies, loading: dataLoading, states } = useData();
 
   const {
     fn: fnGetAllJobs,
@@ -57,7 +53,9 @@ export function JobListings() {
     });
   }, [location, company]);
 
-  const handleFilterLocationChange = (value) => setLocation(value);
+  const handleFilterLocationChange = (value) => {
+    setLocation(value);
+  };
 
   const handleFilterCompanyChange = (value) => setCompany(value);
 
@@ -84,7 +82,7 @@ export function JobListings() {
     });
   };
 
-  if (!sessionLoaded) {
+  if (!sessionLoaded || dataLoading) {
     return (
       <div className="px-4">
         <BarLoader width={"100%"} color={"white"} />
@@ -122,7 +120,11 @@ export function JobListings() {
                       <SelectContent>
                         <SelectGroup>
                           <SelectLabel>Companies</SelectLabel>
-                          <SelectItem value={56}>IBM</SelectItem>
+                          {companies.map((company) => (
+                            <SelectItem key={company.id} value={company.id}>
+                              {company.name}
+                            </SelectItem>
+                          ))}
                         </SelectGroup>
                       </SelectContent>
                     </Select>
@@ -133,9 +135,11 @@ export function JobListings() {
                       <SelectContent>
                         <SelectGroup>
                           <SelectLabel>Locations</SelectLabel>
-                          <SelectItem value={"delhi"}>Delhi</SelectItem>
-                          <SelectItem value={"manipur"}>Manipur</SelectItem>
-                          <SelectItem value={"punjab"}>Punjab</SelectItem>
+                          {states.map((state) => (
+                            <SelectItem key={state.id} value={state.name}>
+                              {state.name}
+                            </SelectItem>
+                          ))}
                         </SelectGroup>
                       </SelectContent>
                     </Select>

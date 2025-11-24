@@ -10,6 +10,7 @@ import {
 const SaveJobsContext = createContext();
 
 export const SaveJobsProvider = ({ children }) => {
+  const [loading, setLoading] = useState(true);
   const { user } = useUser();
   const user_id = user?.id;
   const { fn: fnGetSavedJobs } = useSupabase(getSavedJob);
@@ -23,6 +24,7 @@ export const SaveJobsProvider = ({ children }) => {
     const data = await fnGetSavedJobs({ user_id });
     setSavedJobIds(data.map((item) => item.job_id));
     setSavedJobs(data);
+    setLoading(false);
   };
 
   // Load saved jobs only once when user loads
@@ -47,7 +49,9 @@ export const SaveJobsProvider = ({ children }) => {
   };
 
   return (
-    <SaveJobsContext.Provider value={{ savedJobIds, savedJobs, toggleSave }}>
+    <SaveJobsContext.Provider
+      value={{ savedJobIds, savedJobs, toggleSave, loading }}
+    >
       {children}
     </SaveJobsContext.Provider>
   );

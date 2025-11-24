@@ -17,7 +17,7 @@ const fetchStates = async () => {
 
 const getAllJobs = async (
   token,
-  { location = "", company = "", title = "" },
+  { location = "", company = "", title = "" } = {},
 ) => {
   const supabase = await supabaseClient(token);
 
