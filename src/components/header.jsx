@@ -1,4 +1,4 @@
-import { Link, useSearchParams } from "react-router";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router";
 import { Button } from "./ui/button";
 import {
   SignedIn,
@@ -18,6 +18,8 @@ export const Header = () => {
   const [urlSearchParams, setUrlSearchParams] = useSearchParams();
   const { isLoaded } = useUser();
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
 
   const handleShowSignInModel = () => {
     setShowSignIn(true);
@@ -38,6 +40,10 @@ export const Header = () => {
 
   const handleCloseSignUpModel = (e) => {
     if (e.target === e.currentTarget) setShowSignUp(false);
+  };
+
+  const handleDashboardNavigation = () => {
+    navigate("/dashboard");
   };
 
   return (
@@ -75,32 +81,47 @@ export const Header = () => {
             </SignedOut>
             {isLoaded ? (
               <SignedIn>
-                <UserButton
-                  appearance={{
-                    elements: {
-                      avatarBox: {
-                        width: "36px",
-                        height: "36px",
+                <div className="flex items-center gap-4">
+                  {pathname !== "/dashboard" && (
+                    <Button
+                      onClick={handleDashboardNavigation}
+                      variant={"outline"}
+                      className={"text-xs"}
+                      size={"sm"}
+                    >
+                      Dashboard
+                    </Button>
+                  )}
+                  <UserButton
+                    appearance={{
+                      elements: {
+                        avatarBox: {
+                          width: "36px",
+                          height: "36px",
+                        },
                       },
-                    },
-                  }}
-                >
-                  <UserButton.MenuItems>
-                    <UserButton.Link
-                      label="My Jobs"
-                      href="/my-jobs"
-                      labelIcon={<Briefcase size={15} />}
-                    />
-                    <UserButton.Link
-                      label="Saved Jobs"
-                      href="/saved-jobs"
-                      labelIcon={<Heart size={15} />}
-                    />
-                  </UserButton.MenuItems>
-                </UserButton>
+                    }}
+                  >
+                    <UserButton.MenuItems>
+                      <UserButton.Link
+                        label="My Jobs"
+                        href="/my-jobs"
+                        labelIcon={<Briefcase size={15} />}
+                      />
+                      <UserButton.Link
+                        label="Saved Jobs"
+                        href="/saved-jobs"
+                        labelIcon={<Heart size={15} />}
+                      />
+                    </UserButton.MenuItems>
+                  </UserButton>
+                </div>
               </SignedIn>
             ) : (
-              <div className="mb-1 h-[34px] w-[34px] rounded-full bg-neutral-600"></div>
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-20 rounded-md bg-neutral-600 px-3"></div>
+                <div className="mb-1 h-[34px] w-[34px] rounded-full bg-neutral-600"></div>
+              </div>
             )}
           </div>
         </nav>

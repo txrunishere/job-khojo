@@ -6,6 +6,7 @@ import {
   MyJobs,
   PostJob,
   SavedJobs,
+  Dashboard,
 } from "@/pages";
 import { Route, Routes } from "react-router";
 import { ProtectedRoutes } from "./protected-routes";
@@ -21,6 +22,7 @@ export const RouterProvider = () => {
           <Route path="/saved-jobs" element={<SavedJobs />} />
           <Route path="/my-jobs" element={<MyJobs />} />
           <Route path="/post-job" element={<PostJob />} />
+          <Route path="/dashboard" element={<Dashboard />} />
         </Route>
       </Route>
     </Routes>
