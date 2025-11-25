@@ -9,13 +9,22 @@ import { useData } from "@/context/DataContext";
 import { useSavedJobs } from "@/context/SaveJobsContext";
 import { useUser } from "@clerk/clerk-react";
 import { Bookmark, Briefcase, Calendar } from "lucide-react";
+import { useEffect } from "react";
+import { useNavigate } from "react-router";
 import { BarLoader } from "react-spinners";
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 
-export const Dashboard = () => {
+export const CandidateDashboard = () => {
   const { isLoaded: isSessionLoaded, user } = useUser();
   const { applications, dataLoading } = useData();
   const { savedJobIds, loading: savedJobsLoading } = useSavedJobs();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isSessionLoaded) return;
+    if (user?.unsafeMetadata.role === "recruiter")
+      navigate("/dashboard/recruiter");
+  }, [isSessionLoaded]);
 
   if (!isSessionLoaded || dataLoading || savedJobsLoading) {
     return (

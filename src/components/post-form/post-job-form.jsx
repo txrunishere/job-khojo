@@ -3,7 +3,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { jobInputSchema } from "@/schemas";
-import { useSession } from "@clerk/clerk-react";
+import { useUser } from "@clerk/clerk-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { useForm, FormProvider, useFormContext } from "react-hook-form";
@@ -11,20 +11,27 @@ import { BarLoader } from "react-spinners";
 import { SelectJobLocation } from "./select-job-location";
 import { SelectJobCompany } from "./select-job-company";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { IsOpenJobSelect } from "./isopen-job.select";
 import { JobEmploymentTypeSelect } from "./job-employment-type-select";
 import { RequirementsTextEditor } from "./requirements-text-editor";
 import { useSupabase } from "@/hooks";
 import { insertJobSupabase } from "@/api/jobs.api";
 import { useData } from "@/context/DataContext";
+import { useNavigate } from "react-router";
 
 export const PostJobForm = () => {
-  const { isLoaded } = useSession();
+  const { isLoaded: isSessionLoaded, user } = useUser();
   const [handleJobFormLoading, setHandleJobFormLoading] = useState(false);
   const { states, companies, loading } = useData();
 
   const { fn: fnInsertJob } = useSupabase(insertJobSupabase);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isSessionLoaded) return;
+    if (user.unsafeMetadata.role !== "recruiter") navigate("/");
+  }, [isSessionLoaded]);
 
   const methods = useForm({
     resolver: zodResolver(jobInputSchema),
@@ -91,7 +98,7 @@ export const PostJobForm = () => {
     },
   });
 
-  const isLoadingOverall = loading || !isLoaded || handleJobFormLoading;
+  const isLoadingOverall = loading || !isSessionLoaded || handleJobFormLoading;
 
   if (isLoadingOverall) {
     return (

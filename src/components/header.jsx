@@ -11,23 +11,19 @@ import {
 import { useEffect, useState } from "react";
 import { Briefcase, Heart } from "lucide-react";
 import { useIsMobile } from "@/hooks";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "./ui/card";
+import { toast } from "sonner";
 
 export const Header = () => {
   const [showSignIn, setShowSignIn] = useState(false);
   const [showSignUp, setShowSignUp] = useState(false);
   const [urlSearchParams, setUrlSearchParams] = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
-  const { isLoaded } = useUser();
+  const { isLoaded, user } = useUser();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { pathname } = useLocation();
+
+  const userRole = user?.unsafeMetadata?.role;
 
   const handleShowSignInModel = () => {
     setShowSignIn(true);
@@ -50,11 +46,26 @@ export const Header = () => {
     if (e.target === e.currentTarget) setShowSignUp(false);
   };
 
-  const handleDashboardNavigation = () => {
-    navigate("/dashboard");
-  };
+  const handleDashboardNavigation = () => navigate("/dashboard/candidate");
+
+  const handlePostJobNavigation = () => navigate("/post-form");
 
   const handleRecruiterModel = () => setIsOpen(true);
+
+  const handleBecomeRecruiter = async () => {
+    const res = await user.update({
+      unsafeMetadata: { role: "recruiter" },
+    });
+    if (res) {
+      toast.success(
+        "🎉 You’re now a Recruiter! Redirecting you to your hiring dashboard…",
+      );
+      navigate("/dashboard/recruiter");
+      setIsOpen(false);
+    } else {
+      toast.error("Something went wrong!!");
+    }
+  };
 
   return (
     <>
@@ -92,7 +103,7 @@ export const Header = () => {
             {isLoaded ? (
               <SignedIn>
                 <div className="flex items-center gap-4">
-                  {pathname !== "/dashboard" && (
+                  {!pathname.startsWith("/dashboard") && (
                     <Button
                       onClick={handleDashboardNavigation}
                       variant={"outline"}
@@ -102,7 +113,7 @@ export const Header = () => {
                       Dashboard
                     </Button>
                   )}
-                  {pathname === "/dashboard" && (
+                  {pathname === "/dashboard/candidate" && (
                     <Button
                       onClick={handleRecruiterModel}
                       variant={"outline"}
@@ -112,6 +123,18 @@ export const Header = () => {
                       Hire Candidate ?
                     </Button>
                   )}
+                  {userRole &&
+                    userRole === "recruiter" &&
+                    pathname.startsWith("/dashboard") && (
+                      <Button
+                        onClick={handlePostJobNavigation}
+                        variant={"outline"}
+                        className={"text-xs"}
+                        size={"sm"}
+                      >
+                        Post a Job
+                      </Button>
+                    )}
                   <UserButton
                     appearance={{
                       elements: {
@@ -174,7 +197,9 @@ export const Header = () => {
               </p>
             </div>
             <div className="flex flex-col gap-2">
-              <Button size={"sm"}>Become Recruiter</Button>
+              <Button size={"sm"} onClick={handleBecomeRecruiter}>
+                Become Recruiter
+              </Button>
               <Button
                 size={"sm"}
                 variant={"outline"}
