@@ -97,4 +97,43 @@ const getJobById = async (token, { job_id }) => {
   return data;
 };
 
-export { getAllJobs, insertJobSupabase, fetchStates, getJobById };
+const fetchJobsByRecruiter = async (token, { user_id }) => {
+  const supabase = await supabaseClient(token);
+
+  const { error, data } = await supabase
+    .from("Job")
+    .select("*, company: Company(name, logo_url)")
+    .eq("recruiter_id", user_id);
+
+  if (error) {
+    console.log(
+      "Supabase Error :: While fetching recruiter's jobs :: Error",
+      error,
+    );
+    throw new Error(error.message);
+  }
+
+  return data;
+};
+
+const deleteJob = async (token, { job_id }) => {
+  const supabase = await supabaseClient(token);
+
+  const { error, data } = await supabase.from("Job").delete().eq("id", job_id);
+
+  if (error) {
+    console.log("Supabase Error :: While deleting jobs :: Error", error);
+    throw new Error(error.message);
+  }
+
+  return data;
+};
+
+export {
+  getAllJobs,
+  insertJobSupabase,
+  fetchStates,
+  getJobById,
+  fetchJobsByRecruiter,
+  deleteJob,
+};

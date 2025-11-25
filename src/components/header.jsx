@@ -46,9 +46,15 @@ export const Header = () => {
     if (e.target === e.currentTarget) setShowSignUp(false);
   };
 
-  const handleDashboardNavigation = () => navigate("/dashboard/candidate");
+  const handleDashboardNavigation = () => {
+    if (userRole === "recruiter") {
+      navigate("/dashboard/recruiter");
+    } else {
+      navigate("/dashboard/candidate");
+    }
+  };
 
-  const handlePostJobNavigation = () => navigate("/post-form");
+  const handlePostJobNavigation = () => navigate("/post-job");
 
   const handleRecruiterModel = () => setIsOpen(true);
 

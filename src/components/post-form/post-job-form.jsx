@@ -81,6 +81,7 @@ export const PostJobForm = () => {
         company_id: safeParseCompany(formData.company),
         location: formData.location,
         employment_type: formData.employment_type,
+        recruiter_id: user.id,
       };
 
       const result = await fnInsertJob(payload); // return actual value
