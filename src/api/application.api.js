@@ -24,6 +24,7 @@ const insertApplication = async (token, applicationData) => {
       education_status: applicationData.education,
       application_status: "applied",
       resume: data.publicUrl,
+      name: applicationData.name,
     };
 
     const { data: insertApplicationData, error: insertApplicationError } =
@@ -79,4 +80,28 @@ const fetchMyApplications = async (token, { user_id }) => {
   return data;
 };
 
-export { insertApplication, fetchMyApplications };
+const updateApplicationStatus = async (
+  token,
+  { applicationId, applicationStatus },
+) => {
+  const supabase = await supabaseClient(token);
+
+  const { data, error } = await supabase
+    .from("Application")
+    .update({
+      application_status: applicationStatus,
+    })
+    .eq("id", applicationId);
+
+  if (error) {
+    console.log(
+      "Supabase Error :: While updating application status :: Error",
+      error,
+    );
+    throw new Error(error.message);
+  }
+
+  return data;
+};
+
+export { insertApplication, fetchMyApplications, updateApplicationStatus };

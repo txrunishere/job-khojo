@@ -64,7 +64,9 @@ export const MyJobs = () => {
                 ))}
               </div>
             ) : (
-              <p>You haven't applied for any job yet.</p>
+              <p className="text-center text-neutral-400">
+                You haven't applied for any job yet.
+              </p>
             )}
           </div>
         ))}
@@ -84,7 +86,9 @@ export const MyJobs = () => {
                 ))}
               </div>
             ) : (
-              <p>You haven't posted any job yet.</p>
+              <p className="text-center text-neutral-400">
+                You haven't posted any job yet.
+              </p>
             )}
           </div>
         ))}
