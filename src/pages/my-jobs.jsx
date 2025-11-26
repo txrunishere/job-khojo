@@ -1,5 +1,5 @@
 import { fetchMyApplications } from "@/api/application.api";
-import { Heading, JobCard } from "@/components";
+import { ApplicationCard, Heading, JobCard } from "@/components";
 import { useSupabase } from "@/hooks";
 import { useUser } from "@clerk/clerk-react";
 import { useEffect } from "react";
@@ -10,6 +10,7 @@ export const MyJobs = () => {
   const { isLoaded: sessionLoaded, user } = useUser();
 
   const role = user?.unsafeMetadata.role;
+  const isRecruiter = role === "recruiter";
 
   const {
     fn: fnFetchMyApplications,
@@ -26,11 +27,11 @@ export const MyJobs = () => {
   useEffect(() => {
     if (!sessionLoaded) return;
 
-    if (role === undefined) {
+    if (!isRecruiter) {
       fnFetchMyApplications({ user_id: user.id });
     }
 
-    if (role === "recruiter") {
+    if (isRecruiter) {
       fnFetchPostedJobs({ user_id: user.id });
     }
   }, [sessionLoaded]);
@@ -50,7 +51,7 @@ export const MyJobs = () => {
       </section>
 
       {/* Candidate View */}
-      {role === undefined &&
+      {!isRecruiter &&
         (myApplicationLoading ? (
           <div className="px-3">
             <BarLoader className="my-10" width={"100%"} color="white" />
@@ -58,9 +59,12 @@ export const MyJobs = () => {
         ) : (
           <div className="px-4 py-10">
             {myApplication?.length > 0 ? (
-              <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
+              <div className="space-y-3">
                 {myApplication.map((application) => (
-                  <JobCard key={application.id} job={application.job} />
+                  <ApplicationCard
+                    application={application}
+                    key={application.id}
+                  />
                 ))}
               </div>
             ) : (
@@ -72,7 +76,7 @@ export const MyJobs = () => {
         ))}
 
       {/* Recruiter View */}
-      {role === "recruiter" &&
+      {isRecruiter &&
         (postedJobsLoading ? (
           <div className="px-3">
             <BarLoader className="my-10" width={"100%"} color="white" />

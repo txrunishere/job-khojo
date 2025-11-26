@@ -64,9 +64,7 @@ const fetchMyApplications = async (token, { user_id }) => {
 
   const { error, data } = await supabase
     .from("Application")
-    .select(
-      "id, application_status, job: Job(id, company_id, description, title, location, company: Company(name, logo_url))",
-    )
+    .select("*")
     .eq("user_id", user_id);
 
   if (error) {

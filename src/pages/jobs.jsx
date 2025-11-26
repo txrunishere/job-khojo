@@ -66,9 +66,6 @@ export const Jobs = () => {
   const { fn: fnInsertApplication, isLoading: insertApplicationLoading } =
     useSupabase(insertApplication);
 
-  const { fn: fnUpdateApplicationStatus, isLoading: changeApplicationLoading } =
-    useSupabase(updateApplicationStatus);
-
   const {
     register,
     formState: { errors: applicationFormError },
@@ -157,14 +154,6 @@ export const Jobs = () => {
     );
   }
 
-  const handleApplicationStatusChange = async (value, applicationId) => {
-    await fnUpdateApplicationStatus({
-      applicationId,
-      applicationStatus: value,
-    });
-    toast.success(`Application status changed to ${value} successfully!!`);
-  };
-
   return (
     <div>
       {!jobLoading && (
@@ -209,10 +198,9 @@ export const Jobs = () => {
                 </Button>
               ) : (
                 <ApplicationsList
+                  isRecruiter={isRecruiter}
                   jobData={jobData}
                   applicationStatusList={applicationStatusList}
-                  handleApplicationStatusChange={handleApplicationStatusChange}
-                  changeApplicationLoading={changeApplicationLoading}
                 />
               )}
             </>
@@ -406,20 +394,14 @@ const ApplyDrawerForm = ({
 );
 
 /* APPLICATION LIST */
-const ApplicationsList = ({
-  jobData,
-  applicationStatusList,
-  handleApplicationStatusChange,
-  changeApplicationLoading,
-}) => (
+const ApplicationsList = ({ jobData, applicationStatusList, isRecruiter }) => (
   <div className="space-y-3">
     {jobData.applications.map((application) => (
       <ApplicationCard
         key={application.id}
         application={application}
         applicationStatusList={applicationStatusList}
-        handleApplicationStatusChange={handleApplicationStatusChange}
-        changeApplicationLoading={changeApplicationLoading}
+        isRecruiter={isRecruiter}
       />
     ))}
   </div>

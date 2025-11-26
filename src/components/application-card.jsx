@@ -17,26 +17,54 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import { useSupabase } from "@/hooks";
+import { updateApplicationStatus } from "@/api/application.api";
+import { toast } from "sonner";
 
 dayjs.extend(advancedFormat);
 
 export const ApplicationCard = ({
   application,
   applicationStatusList = [],
-  handleApplicationStatusChange = () => {},
-  changeApplicationLoading = false,
+  isRecruiter = false,
 }) => {
   let educationStatus = application.education_status
     .split("_")
     .map((e) => e[0].toUpperCase() + e.slice(1))
     .join(" ");
 
+  const applicationStatus =
+    application.application_status.trim()[0].toUpperCase() +
+    application.application_status.slice(1);
+
+  const handleOpenResume = () => {
+    const link = document.createElement("a");
+    link.setAttribute("href", application?.resume);
+    link.setAttribute("target", "_blank");
+    link.click();
+  };
+
+  const { fn: fnUpdateApplicationStatus, isLoading: changeApplicationLoading } =
+    useSupabase(updateApplicationStatus);
+
+  const handleApplicationStatusChange = async (value, applicationId) => {
+    await fnUpdateApplicationStatus({
+      applicationId,
+      applicationStatus: value,
+    });
+    toast.success(`Application status changed to ${value} successfully!!`);
+  };
+
   return (
     <Card>
       <CardHeader className="flex items-center justify-between">
         <CardTitle>{application.name}</CardTitle>
         <CardDescription>
-          <Button className="icon-sm">
+          <Button
+            onClick={handleOpenResume}
+            variant={"icon-sm"}
+            className={"cursor-pointer"}
+          >
             <Download />
           </Button>
         </CardDescription>
@@ -60,25 +88,29 @@ export const ApplicationCard = ({
 
         <div className="flex items-center gap-2">
           <p>Status:</p>
-          <Select
-            disabled={changeApplicationLoading}
-            defaultValue={application.application_status}
-            onValueChange={(value) =>
-              handleApplicationStatusChange(value, application.id)
-            }
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue />
-            </SelectTrigger>
+          {isRecruiter ? (
+            <Select
+              disabled={changeApplicationLoading}
+              defaultValue={application.application_status}
+              onValueChange={(value) =>
+                handleApplicationStatusChange(value, application.id)
+              }
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue />
+              </SelectTrigger>
 
-            <SelectContent>
-              {applicationStatusList.map((status) => (
-                <SelectItem key={status} value={status.toLowerCase()}>
-                  {status}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+              <SelectContent>
+                {applicationStatusList.map((status) => (
+                  <SelectItem key={status} value={status.toLowerCase()}>
+                    {status}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <p>{applicationStatus}</p>
+          )}
         </div>
       </CardFooter>
     </Card>
