@@ -1,4 +1,4 @@
-import { getJobById } from "@/api/jobs.api";
+import { changeJobStatus, getJobById } from "@/api/jobs.api";
 import { InputField } from "@/components";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,6 +34,13 @@ import { applicationInputSchema } from "@/schemas";
 import { insertApplication } from "@/api/application.api";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export const Jobs = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -45,6 +52,8 @@ export const Jobs = () => {
     fn: fnGetJobById,
     isLoading: jobLoading,
   } = useSupabase(getJobById);
+
+  const { fn: fnChangeJobStatus } = useSupabase(changeJobStatus);
 
   const { fn: fnInsertApplication, isLoading: insertApplicationLoading } =
     useSupabase(insertApplication);
@@ -67,7 +76,21 @@ export const Jobs = () => {
     },
   });
 
+  const role = user?.unsafeMetadata?.role;
+
   const educationStatusArray = ["Graduate", "Post Graduate", "Under Graduate"];
+
+  const handleChangeJobStatus = async (value) => {
+    let status = value === "OPEN" ? true : false;
+
+    if (jobData.isOpen === status) return;
+
+    await fnChangeJobStatus({
+      userId: user.id,
+      jobId: jobData.id,
+      isOpen: status,
+    });
+  };
 
   const handleFileChange = (e) => {
     if (e.target?.files[0]) {
@@ -131,8 +154,6 @@ export const Jobs = () => {
     );
   }
 
-  // TODO: fix it with maybeSingle() method in api file
-
   return (
     <div>
       {!jobLoading && (
@@ -140,7 +161,7 @@ export const Jobs = () => {
           {/* TITLE + COMPANY LOGO */}
           <div className="flex flex-col items-center justify-between gap-8 sm:flex-row">
             <section>
-              <h1 className="max-w-md bg-linear-to-r from-neutral-400 to-neutral-300 bg-clip-text text-center text-4xl font-bold text-transparent sm:max-w-xl sm:text-5xl">
+              <h1 className="bg-linear-to-r from-neutral-200 to-neutral-400 bg-clip-text text-center text-3xl font-bold text-transparent sm:text-start">
                 {jobData?.title}
               </h1>
             </section>
@@ -163,14 +184,41 @@ export const Jobs = () => {
               </p>
             </div>
             <div className="">
-              {jobData?.isOpen ? (
-                <p className="flex items-center gap-1">
-                  <DoorOpen size={20} /> <span>OPEN</span>
-                </p>
+              {role === "recruiter" ? (
+                <div className="flex items-center gap-2">
+                  <div>
+                    {jobData?.isOpen ? (
+                      <p className="flex items-center gap-1">
+                        <DoorOpen size={20} /> <span>OPEN</span>
+                      </p>
+                    ) : (
+                      <p className="flex items-center gap-1">
+                        <DoorClosed size={20} /> <span>CLOSED</span>
+                      </p>
+                    )}
+                  </div>
+                  <Select onValueChange={handleChangeJobStatus}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Job Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={"OPEN"}>OPEN</SelectItem>
+                      <SelectItem value={"CLOSE"}>CLOSE</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               ) : (
-                <p className="flex items-center gap-1">
-                  <DoorClosed size={20} /> <span>CLOSED</span>
-                </p>
+                <div>
+                  {jobData?.isOpen ? (
+                    <p className="flex items-center gap-1">
+                      <DoorOpen size={20} /> <span>OPEN</span>
+                    </p>
+                  ) : (
+                    <p className="flex items-center gap-1">
+                      <DoorClosed size={20} /> <span>CLOSED</span>
+                    </p>
+                  )}
+                </div>
               )}
             </div>
             <div>
@@ -203,95 +251,101 @@ export const Jobs = () => {
 
           {/* APPLY BUTTON */}
           <div>
-            <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
-              <DrawerTrigger
-                className={
-                  "bg-primary text-primary-foreground hover:bg-primary/90 w-full rounded-md py-1 font-bold"
-                }
-              >
-                Apply
-              </DrawerTrigger>
-              <DrawerContent className={"pb-4"}>
-                <DrawerHeader className={"w-full justify-start"}>
-                  <DrawerTitle>
-                    Apply for {jobData?.title} at {jobData?.company.name}
-                  </DrawerTitle>
-                  <DrawerDescription>Fill the form below</DrawerDescription>
-                </DrawerHeader>
-                <div className="space-y-3 p-4">
-                  <InputField>
-                    <Input
-                      {...register("experience")}
-                      type={"text"}
-                      placeholder={"Expirence (in months)"}
-                    />
-                    {applicationFormError.experience && (
-                      <p className="text-sm text-red-500">
-                        {applicationFormError.experience.message}
-                      </p>
-                    )}
-                  </InputField>
-                  <InputField>
-                    <Input
-                      {...register("skills")}
-                      type={"text"}
-                      placeholder={"Skills (comma seperated)"}
-                    />
-                    {applicationFormError.skills && (
-                      <p className="text-sm text-red-500">
-                        {applicationFormError.skills.message}
-                      </p>
-                    )}
-                  </InputField>
-                  <InputField>
-                    <RadioGroup
-                      onValueChange={handleEducationStatusChange}
-                      defaultValue=""
+            {role !== "recruiter" && (
+              <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+                <DrawerTrigger
+                  className={
+                    "bg-primary text-primary-foreground hover:bg-primary/90 w-full rounded-md py-1 font-bold"
+                  }
+                >
+                  Apply
+                </DrawerTrigger>
+                <DrawerContent className={"pb-4"}>
+                  <DrawerHeader className={"w-full justify-start"}>
+                    <DrawerTitle>
+                      Apply for {jobData?.title} at {jobData?.company.name}
+                    </DrawerTitle>
+                    <DrawerDescription>Fill the form below</DrawerDescription>
+                  </DrawerHeader>
+                  <div className="space-y-3 p-4">
+                    <InputField>
+                      <Input
+                        {...register("experience")}
+                        type={"text"}
+                        placeholder={"Expirence (in months)"}
+                      />
+                      {applicationFormError.experience && (
+                        <p className="text-sm text-red-500">
+                          {applicationFormError.experience.message}
+                        </p>
+                      )}
+                    </InputField>
+                    <InputField>
+                      <Input
+                        {...register("skills")}
+                        type={"text"}
+                        placeholder={"Skills (comma seperated)"}
+                      />
+                      {applicationFormError.skills && (
+                        <p className="text-sm text-red-500">
+                          {applicationFormError.skills.message}
+                        </p>
+                      )}
+                    </InputField>
+                    <InputField>
+                      <RadioGroup
+                        onValueChange={handleEducationStatusChange}
+                        defaultValue=""
+                      >
+                        {educationStatusArray.map((i, idx) => (
+                          <div key={i} className="flex items-center gap-3">
+                            <RadioGroupItem
+                              value={i
+                                .trim()
+                                .toLowerCase()
+                                .split(" ")
+                                .join("_")}
+                              id={`r-${idx + 1}`}
+                            />
+                            <Label htmlFor={`r-${idx + 1}`}>{i}</Label>
+                          </div>
+                        ))}
+                      </RadioGroup>
+                      {applicationFormError.education && (
+                        <p className="text-sm text-red-500">
+                          {applicationFormError.education.message}
+                        </p>
+                      )}
+                    </InputField>
+                    <InputField>
+                      <Input
+                        // accept="image/png, image/jpeg, image/svg+xml, image/jpg"
+                        onChange={handleFileChange}
+                        type={"file"}
+                      />
+                      {applicationFormError.resume && (
+                        <p className="text-sm text-red-500">
+                          {applicationFormError.resume.message}
+                        </p>
+                      )}
+                    </InputField>
+                  </div>
+                  <DrawerFooter className={""}>
+                    <Button
+                      onClick={handleSubmit((formData) =>
+                        handleApplicationForm.mutate(formData),
+                      )}
+                      disabled={insertApplicationLoading || isUserEnrolled}
                     >
-                      {educationStatusArray.map((i, idx) => (
-                        <div key={i} className="flex items-center gap-3">
-                          <RadioGroupItem
-                            value={i.trim().toLowerCase().split(" ").join("_")}
-                            id={`r-${idx + 1}`}
-                          />
-                          <Label htmlFor={`r-${idx + 1}`}>{i}</Label>
-                        </div>
-                      ))}
-                    </RadioGroup>
-                    {applicationFormError.education && (
-                      <p className="text-sm text-red-500">
-                        {applicationFormError.education.message}
-                      </p>
-                    )}
-                  </InputField>
-                  <InputField>
-                    <Input
-                      // accept="image/png, image/jpeg, image/svg+xml, image/jpg"
-                      onChange={handleFileChange}
-                      type={"file"}
-                    />
-                    {applicationFormError.resume && (
-                      <p className="text-sm text-red-500">
-                        {applicationFormError.resume.message}
-                      </p>
-                    )}
-                  </InputField>
-                </div>
-                <DrawerFooter className={""}>
-                  <Button
-                    onClick={handleSubmit((formData) =>
-                      handleApplicationForm.mutate(formData),
-                    )}
-                    disabled={insertApplicationLoading || isUserEnrolled}
-                  >
-                    Submit
-                  </Button>
-                  <DrawerClose className={"rounded-md border-2 py-1"}>
-                    Cancel
-                  </DrawerClose>
-                </DrawerFooter>
-              </DrawerContent>
-            </Drawer>
+                      Submit
+                    </Button>
+                    <DrawerClose className={"rounded-md border-2 py-1"}>
+                      Cancel
+                    </DrawerClose>
+                  </DrawerFooter>
+                </DrawerContent>
+              </Drawer>
+            )}
           </div>
         </div>
       )}

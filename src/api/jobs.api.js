@@ -130,6 +130,44 @@ const deleteJob = async (token, { job_id }) => {
   return data;
 };
 
+const changeJobStatus = async (token, { jobId, userId, isOpen }) => {
+  const supabase = await supabaseClient(token);
+
+  if (isOpen) {
+    const { data, error } = await supabase
+      .from("Job")
+      .update({ isOpen })
+      .eq("id", jobId)
+      .eq("recruiter_id", userId);
+
+    if (error) {
+      console.log(
+        "Supabase Error :: While updating job status jobs :: Error",
+        error,
+      );
+      throw new Error(error.message);
+    }
+
+    return data;
+  } else {
+    const { data, error } = await supabase
+      .from("Job")
+      .update({ isOpen })
+      .eq("id", jobId)
+      .eq("recruiter_id", userId);
+
+    if (error) {
+      console.log(
+        "Supabase Error :: While updating job status jobs :: Error",
+        error,
+      );
+      throw new Error(error.message);
+    }
+
+    return data;
+  }
+};
+
 export {
   getAllJobs,
   insertJobSupabase,
@@ -137,4 +175,5 @@ export {
   getJobById,
   fetchJobsByRecruiter,
   deleteJob,
+  changeJobStatus,
 };
