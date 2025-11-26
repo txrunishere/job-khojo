@@ -7,6 +7,7 @@ import { InputField } from "./input-field";
 import { CompanyForm } from "./company-form";
 import { PostJobForm } from "./post-form/post-job-form";
 import { JobCard } from "./job-card";
+import { ApplicationCard } from "./application-card";
 
 export {
   ModeToggle,
@@ -18,4 +19,5 @@ export {
   InputField,
   PostJobForm,
   JobCard,
+  ApplicationCard,
 };
