@@ -4,11 +4,10 @@ import { useState } from "react";
 export const useSupabase = (cb) => {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const { isLoaded, session } = useSession();
 
   const fn = async (...args) => {
-    setIsLoading(true);
     setError(null);
 
     try {
