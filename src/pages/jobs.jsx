@@ -115,7 +115,7 @@ export const Jobs = () => {
   }, [sessionLoaded]);
 
   useEffect(() => {
-    const applications = jobData?.[0]?.applications.map(
+    const applications = jobData?.applications.map(
       (application) => application.user_id,
     );
     if (applications?.includes(user.id)) {
@@ -141,15 +141,11 @@ export const Jobs = () => {
           <div className="flex flex-col items-center justify-between gap-8 sm:flex-row">
             <section>
               <h1 className="max-w-md bg-linear-to-r from-neutral-400 to-neutral-300 bg-clip-text text-center text-4xl font-bold text-transparent sm:max-w-xl sm:text-5xl">
-                {jobData?.[0].title}
+                {jobData?.title}
               </h1>
             </section>
             <div>
-              <img
-                className="h-10"
-                src={jobData?.[0].company.logo_url}
-                alt=""
-              />
+              <img className="h-10" src={jobData?.company.logo_url} alt="" />
             </div>
           </div>
 
@@ -157,17 +153,17 @@ export const Jobs = () => {
           <div className="space-y-6 py-6 text-sm font-bold sm:text-lg">
             <div>
               <p className="flex items-center gap-1">
-                <MapPin size={18} /> <span>{jobData?.[0].location}</span>
+                <MapPin size={18} /> <span>{jobData?.location}</span>
               </p>
             </div>
             <div>
               <p className="flex items-center gap-1.5">
                 <StickyNote size={20} />
-                {jobData?.[0].applications.length} applications
+                {jobData?.applications.length} applications
               </p>
             </div>
             <div className="">
-              {jobData?.[0].isOpen ? (
+              {jobData?.isOpen ? (
                 <p className="flex items-center gap-1">
                   <DoorOpen size={20} /> <span>OPEN</span>
                 </p>
@@ -179,14 +175,14 @@ export const Jobs = () => {
             </div>
             <div>
               <p className="flex items-center gap-1">
-                <Banknote size={20} /> ₹{jobData?.[0]["salary-start"]} -{" "}
-                {jobData?.[0]["salary-end"]}
+                <Banknote size={20} /> ₹{jobData?.["salary-start"]} -{" "}
+                {jobData?.["salary-end"]}
               </p>
             </div>
             <div>
               <p className="flex items-center gap-1">
                 <BriefcaseBusiness size={20} />
-                {jobData?.[0].experience} (months) required
+                {jobData?.experience} (months) required
               </p>
             </div>
           </div>
@@ -194,7 +190,7 @@ export const Jobs = () => {
           {/* REQUIREMENTS */}
           <div>
             <MDEditor.Markdown
-              source={jobData?.[0].requirements}
+              source={jobData?.requirements}
               style={{
                 whiteSpace: "pre-wrap",
                 display: "flex",
@@ -218,8 +214,7 @@ export const Jobs = () => {
               <DrawerContent className={"pb-4"}>
                 <DrawerHeader className={"w-full justify-start"}>
                   <DrawerTitle>
-                    Apply for {jobData?.[0].title} at{" "}
-                    {jobData?.[0].company.name}
+                    Apply for {jobData?.title} at {jobData?.company.name}
                   </DrawerTitle>
                   <DrawerDescription>Fill the form below</DrawerDescription>
                 </DrawerHeader>

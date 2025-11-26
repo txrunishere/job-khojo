@@ -83,7 +83,8 @@ const getJobById = async (token, { job_id }) => {
     .select(
       "*, company: Company(logo_url, website_url, name), applications: Application(id, user_id)",
     )
-    .eq("id", job_id);
+    .eq("id", job_id)
+    .maybeSingle();
 
   if (error) {
     console.log(
