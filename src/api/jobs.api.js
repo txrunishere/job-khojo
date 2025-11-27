@@ -168,6 +168,25 @@ const changeJobStatus = async (token, { jobId, userId, isOpen }) => {
   }
 };
 
+const fetchJobsByRecruiterForDashboard = async (token, { userId }) => {
+  const supabase = await supabaseClient(token);
+
+  const { error, data } = await supabase
+    .from("Job")
+    .select("id, applications: Application(application_status, created_at)")
+    .eq("recruiter_id", userId);
+
+  if (error) {
+    console.log(
+      "Supabase Error :: While fetching recruiter's jobs :: Error",
+      error,
+    );
+    throw new Error(error.message);
+  }
+
+  return data;
+};
+
 export {
   getAllJobs,
   insertJobSupabase,
@@ -176,4 +195,5 @@ export {
   fetchJobsByRecruiter,
   deleteJob,
   changeJobStatus,
+  fetchJobsByRecruiterForDashboard,
 };

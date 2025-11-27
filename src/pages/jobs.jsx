@@ -31,10 +31,7 @@ import { useParams } from "react-router";
 import { BarLoader } from "react-spinners";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { applicationInputSchema } from "@/schemas";
-import {
-  insertApplication,
-  updateApplicationStatus,
-} from "@/api/application.api";
+import { insertApplication } from "@/api/application.api";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -396,7 +393,7 @@ const ApplyDrawerForm = ({
 /* APPLICATION LIST */
 const ApplicationsList = ({ jobData, applicationStatusList, isRecruiter }) => (
   <div className="space-y-3">
-    {jobData.length > 0 ? (
+    {jobData.applications.length > 0 ? (
       jobData.applications.map((application) => (
         <ApplicationCard
           key={application.id}
