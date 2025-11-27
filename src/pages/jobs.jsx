@@ -396,13 +396,19 @@ const ApplyDrawerForm = ({
 /* APPLICATION LIST */
 const ApplicationsList = ({ jobData, applicationStatusList, isRecruiter }) => (
   <div className="space-y-3">
-    {jobData.applications.map((application) => (
-      <ApplicationCard
-        key={application.id}
-        application={application}
-        applicationStatusList={applicationStatusList}
-        isRecruiter={isRecruiter}
-      />
-    ))}
+    {jobData.length > 0 ? (
+      jobData.applications.map((application) => (
+        <ApplicationCard
+          key={application.id}
+          application={application}
+          applicationStatusList={applicationStatusList}
+          isRecruiter={isRecruiter}
+        />
+      ))
+    ) : (
+      <p className="mt-4 text-center text-neutral-400">
+        No one apply for this job yet!!
+      </p>
+    )}
   </div>
 );
